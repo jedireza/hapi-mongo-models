@@ -1,0 +1,46 @@
+{
+  "name": "hapi-mongo-models",
+  "version": "1.0.0",
+  "description": "Simple MongoDB object models for hapi applications",
+  "main": "index.js",
+  "scripts": {
+    "test": "./node_modules/lab/bin/lab -c -L",
+    "test-cover": "./node_modules/lab/bin/lab -c -r html -o ./test/artifacts/coverage.html && open ./test/artifacts/coverage.html"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git@github.com:jedireza/hapi-mongo-models.git"
+  },
+  "keywords": [
+    "hapi",
+    "hapijs",
+    "mongo",
+    "mongodb",
+    "model",
+    "models",
+    "odm"
+  ],
+  "author": "Reza Akhavan <reza@akhavan.me>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/jedireza/hapi-mongo-models/issues"
+  },
+  "homepage": "https://github.com/jedireza/hapi-mongo-models",
+  "devDependencies": {
+    "code": "^1.2.1",
+    "hapi": "^8.0.0",
+    "lab": "^5.1.0",
+    "mongodb": "^1.4.23",
+    "proxyquire": "^1.3.0"
+  },
+  "peerDependencies": {
+    "mongodb": "^1.4.23"
+  },
+  "dependencies": {
+    "ampersand-class-extend": "^1.0.1",
+    "async": "^0.9.0",
+    "hoek": "^2.10.0",
+    "joi": "^5.0.2",
+    "object-assign": "^2.0.0"
+  }
+}
