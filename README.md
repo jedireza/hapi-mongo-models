@@ -354,6 +354,11 @@ Proxied call to MongoDB's native driver. See:
 http://mongodb.github.io/node-mongodb-native/api-generated/collection.html#remove
 
 
+## Examples
+
+To see `hapi-mongo-models` in action, checkout [Frame](https://github.com/jedireza/frame).
+
+
 ## License
 
 MIT
