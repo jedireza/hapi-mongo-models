@@ -185,7 +185,7 @@ class to validate `input` where:
 
 See: https://github.com/hapijs/joi#validatevalue-schema-options-callback
 
-### `validate(callback)`
+#### `validate(callback)`
 
 Uses `joi` validation using the static `schema` object property of a model
 class to validate the instance data of a model where:
