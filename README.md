@@ -273,7 +273,7 @@ Returns a MongoDB friendly sort object.
 
 Finds one document using MongoDB's native `findOne` method where:
 
- - `id` - is a string value of the id to find. It will be casted to the type
+ - `id` - is a string value of the `_id` to find. It will be casted to the type
     of `_idClass`.
  - `options` - an options object passed to MongoDB's native `findOne` method.
  - `callback` - the callback method using the signature `function (err, results)`
@@ -287,7 +287,7 @@ Note: `callback` passes through `resultFactory`.
 
 Finds one document using MongoDB's native `findAndModify` method where:
 
- - `id` - is a string value of the id to find. It will be casted to the type
+ - `id` - is a string value of the `_id` to find. It will be casted to the type
     of `_idClass`.
  - `update` - an object containing the fields/values to be updated.
  - `options` - an optional options object passed to MongoDB's native
@@ -304,7 +304,7 @@ Note: `callback` passes through `resultFactory`.
 
 Removes one document using MongoDB's native `remove` method where:
 
- - `id` - is a string value of the id to find. It will be casted to the type
+ - `id` - is a string value of the `_id` to find. It will be casted to the type
     of `_idClass`.
  - `callback` - the callback method using the signature `function (err)`
     where:
