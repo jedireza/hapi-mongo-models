@@ -2,9 +2,10 @@
 
 MongoDB object models for hapi applications.
 
-[![Dependency Status](https://david-dm.org/jedireza/hapi-mongo-models.svg)](https://david-dm.org/jedireza/hapi-mongo-models)
-[![devDependency Status](https://david-dm.org/jedireza/hapi-mongo-models/dev-status.svg?theme=shields.io)](https://david-dm.org/jedireza/hapi-mongo-models#info=devDependencies)
 [![Build Status](https://travis-ci.org/jedireza/hapi-mongo-models.svg?branch=master)](https://travis-ci.org/jedireza/hapi-mongo-models)
+[![Dependency Status](https://david-dm.org/jedireza/hapi-mongo-models.svg?style=flat)](https://david-dm.org/jedireza/hapi-mongo-models)
+[![devDependency Status](https://david-dm.org/jedireza/hapi-mongo-models/dev-status.svg?style=flat)](https://david-dm.org/jedireza/hapi-mongo-models#info=devDependencies)
+[![peerDependency Status](https://david-dm.org/jedireza/hapi-mongo-models/peer-status.svg?style=flat)](https://david-dm.org/jedireza/hapi-mongo-models#info=peerDependencies)
 
 [MongoDB](https://github.com/mongodb/node-mongodb-native)'s native driver for
 Node.js is pretty good. We just want a little sugar on top.
