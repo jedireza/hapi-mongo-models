@@ -1,7 +1,7 @@
 {
   "name": "hapi-mongo-models",
   "version": "1.0.0",
-  "description": "Simple MongoDB object models for hapi applications",
+  "description": "MongoDB object models for hapi applications",
   "main": "index.js",
   "scripts": {
     "test": "./node_modules/lab/bin/lab -c -L",
