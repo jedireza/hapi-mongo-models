@@ -114,6 +114,16 @@ Or include it in your composer manifest.
 }
 ```
 
+The options passed to the plugin is an object where:
+
+ - `mongodb` - is an object where:
+    - `url` - a string representing the connection url for MongoDB.
+    - `settings` - an optional object passed to the MongoDB's native connect function.
+ - `autoIndex` - a boolean specifying if the plugin should call `ensureIndex` for each
+    model. Defaults to `true`. Typically set to `false` in production environments.
+ - `models` - an object where each key is the exposed model name and each value is the
+    path (relative to the current working directory) of where to find the model on disk.
+
 
 ## API
 
@@ -122,8 +132,8 @@ Or include it in your composer manifest.
 Creates a new model class where:
 
  - `protoProps` - an object defining the prototype of the new class where:
-   - `constructor` - an optional function that will be used as the instance
-     constructor.
+    - `constructor` - an optional function that will be used as the instance
+      constructor.
 
 ```js
 var Kitten = BaseModel.extend({
@@ -156,12 +166,12 @@ A `joi` object schema. See: https://github.com/hapijs/joi
 Connects to a MongoDB server where:
 
  - `config` - an object with the following keys:
-   - `url` - the connection string passed to `MongoClient.connect`.
-   - `settings` - an optional object passed to `MongoClient.connect`.
+    - `url` - the connection string passed to `MongoClient.connect`.
+    - `settings` - an optional object passed to `MongoClient.connect`.
  - `callback` - the callback method using the signature `function (err, db)`
-   where:
-   - `err` - if the connection failed, the error reason, otherwise `null`.
-   - `db` - if the connection succeeded, the initialized db object.
+    where:
+    - `err` - if the connection failed, the error reason, otherwise `null`.
+    - `db` - if the connection succeeded, the initialized db object.
 
 #### `disconnect()`
 
@@ -179,10 +189,10 @@ class to validate `input` where:
 
  - `input` - is the object to validate.
  - `callback` - is the callback method using the signature `function (err,
-   value)` where:
-   - `err` - if validation failed, the error reason, otherwise null.
-   - `value` - the validated value with any type conversions and other
-     modifiers applied.
+    value)` where:
+    - `err` - if validation failed, the error reason, otherwise null.
+    - `value` - the validated value with any type conversions and other
+       modifiers applied.
 
 See: https://github.com/hapijs/joi#validatevalue-schema-options-callback
 
@@ -192,10 +202,10 @@ Uses `joi` validation using the static `schema` object property of a model
 class to validate the instance data of a model where:
 
  - `callback` - is the callback method using the signature `function (err,
-   value)` where:
-   - `err` - if validation failed, the error reason, otherwise null.
-   - `value` - the validated value with any type conversions and other
-     modifiers applied.
+    value)` where:
+    - `err` - if validation failed, the error reason, otherwise null.
+    - `value` - the validated value with any type conversions and other
+       modifiers applied.
 
 See: https://github.com/hapijs/joi#validatevalue-schema-options-callback
 
@@ -214,31 +224,31 @@ where:
 A helper method to find documents with paginated results where:
 
  - `query` - is a query object, defining the conditions the documents need to
-   apply.
+    apply.
  - `fields` - indicates which fields should be included in the response
-   (default is all). Can be a string with space separated field names.
+    (default is all). Can be a string with space separated field names.
  - `sort` - indicates how to sort documents. Can be a string with space
-   separated fields. Fields may be prefixed with `-` to indicate decending
-   sort order.
+    separated fields. Fields may be prefixed with `-` to indicate decending
+    sort order.
  - `limit` - a number indicating how many results should be returned.
  - `page` - a number indicating the current page.
  - `callback` - is the callback method using the signature `function (err,
-   results)` where:
-   - `err` - if the query failed, the error reason, otherwise null.
-   - `results` - the results object where:
-     - `data` - an array of results from the query.
-     - `pages` - an object where:
-        - `current` - a number indicating the current page.
-        - `prev` - a number indicating the previous page.
-        - `hasPrev` - a boolean indicating if there is a previous page.
-        - `next` - a number indicating the next page.
-        - `hasNext` - a boolean indicating if there is a next page.
-        - `total` - a number indicating the total number of pages.
-     - `items` - an object where:
-        - `limit` - a number indicating the how many results should be returned.
-        - `begin` - a number indicating what item number the results begin with.
-        - `end` - a number indicating what item number the results end with.
-        - `total` - a number indicating the total number of matching results.
+    results)` where:
+    - `err` - if the query failed, the error reason, otherwise null.
+    - `results` - the results object where:
+        - `data` - an array of results from the query.
+        - `pages` - an object where:
+            - `current` - a number indicating the current page.
+            - `prev` - a number indicating the previous page.
+            - `hasPrev` - a boolean indicating if there is a previous page.
+            - `next` - a number indicating the next page.
+            - `hasNext` - a boolean indicating if there is a next page.
+            - `total` - a number indicating the total number of pages.
+        - `items` - an object where:
+            - `limit` - a number indicating the how many results should be returned.
+            - `begin` - a number indicating what item number the results begin with.
+            - `end` - a number indicating what item number the results end with.
+            - `total` - a number indicating the total number of matching results.
 
 #### `fieldsAdapter(fields)`
 
@@ -264,12 +274,12 @@ Returns a MongoDB friendly sort object.
 Finds one document using MongoDB's native `findOne` method where:
 
  - `id` - is a string value of the id to find. It will be casted to the type
-   of `_idClass`.
+    of `_idClass`.
  - `options` - an options object passed to MongoDB's native `findOne` method.
  - `callback` - the callback method using the signature `function (err, results)`
-   where:
-   - `err` - if the query failed, the error reason, otherwise `null`.
-   - `results` - if the query succeeded, the results of the query.
+    where:
+    - `err` - if the query failed, the error reason, otherwise `null`.
+    - `results` - if the query succeeded, the results of the query.
 
 Note: `callback` passes through `resultFactory`.
 
@@ -278,14 +288,14 @@ Note: `callback` passes through `resultFactory`.
 Finds one document using MongoDB's native `findAndModify` method where:
 
  - `id` - is a string value of the id to find. It will be casted to the type
-   of `_idClass`.
+    of `_idClass`.
  - `update` - an object containing the fields/values to be updated.
  - `options` - an optional options object passed to MongoDB's native
-   `findAndModify` method.
+    `findAndModify` method.
  - `callback` - the callback method using the signature `function (err, results)`
-   where:
-   - `err` - if the query failed, the error reason, otherwise `null`.
-   - `results` - if the query succeeded, the results of the query.
+    where:
+    - `err` - if the query failed, the error reason, otherwise `null`.
+    - `results` - if the query succeeded, the results of the query.
 
 
 Note: `callback` passes through `resultFactory`.
@@ -295,10 +305,10 @@ Note: `callback` passes through `resultFactory`.
 Removes one document using MongoDB's native `remove` method where:
 
  - `id` - is a string value of the id to find. It will be casted to the type
-   of `_idClass`.
+    of `_idClass`.
  - `callback` - the callback method using the signature `function (err)`
-   where:
-   - `err` - if the query failed, the error reason, otherwise `null`.
+    where:
+    - `err` - if the query failed, the error reason, otherwise `null`.
 
 ### Proxied methods
 
