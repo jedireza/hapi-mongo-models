@@ -43,10 +43,15 @@ Let's create a `Cat` model.
 
 ```js
 var Joi = require('joi');
+var ObjectAssign = require('object-assign');
 var BaseModel = require('hapi-mongo-models').BaseModel;
 
 var Cat = BaseModel.extend({
     // instance prototype
+    constructor: function (attrs) {
+
+        ObjectAssign(this, attrs);
+    }
 });
 
 Cat._collection = 'cats'; // the mongo collection name
@@ -57,7 +62,7 @@ Cat.schema = Joi.object().keys({
 
 Cat.staticFunction = function () {
 
-  // static class function
+    // static class function
 };
 
 module.exports = Cat;
@@ -136,10 +141,12 @@ Creates a new model class where:
       constructor.
 
 ```js
-var Kitten = BaseModel.extend({
-    constructor: function (name) {
+var ObjectAssign = require('object-assign');
 
-        this.name = name;
+var Kitten = BaseModel.extend({
+    constructor: function (attrs) {
+
+        ObjectAssign(this, attrs);
     },
     speak: function () {
 
