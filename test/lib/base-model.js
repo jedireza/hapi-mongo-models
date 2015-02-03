@@ -559,6 +559,16 @@ lab.experiment('BaseModel Proxied Methods', function () {
     });
 
 
+    lab.test('it catches the exception when id casting fails during findById', function (done) {
+
+        SubModel.findById('NOTVALIDOBJECTID', function (err, result) {
+
+            Code.expect(err).to.exist();
+            done();
+        });
+    });
+
+
     lab.test('it updates a single document via id', function (done) {
 
         var document = { name: 'New Name' };
@@ -568,6 +578,16 @@ lab.experiment('BaseModel Proxied Methods', function () {
             Code.expect(err).to.not.exist();
             Code.expect(result).to.be.an.object();
 
+            done();
+        });
+    });
+
+
+    lab.test('it catches the exception when id casting fails during findByIdAndUpdate', function (done) {
+
+        SubModel.findByIdAndUpdate('NOTVALIDOBJECTID', {}, function (err, result) {
+
+            Code.expect(err).to.exist();
             done();
         });
     });
@@ -596,6 +616,16 @@ lab.experiment('BaseModel Proxied Methods', function () {
             Code.expect(result).to.be.a.number();
             Code.expect(result).to.equal(1);
 
+            done();
+        });
+    });
+
+
+    lab.test('it catches the exception when id casting fails during findByIdAndRemove', function (done) {
+
+        SubModel.findByIdAndRemove('NOTVALIDOBJECTID', function (err, result) {
+
+            Code.expect(err).to.exist();
             done();
         });
     });
