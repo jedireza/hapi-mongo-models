@@ -14,15 +14,15 @@ Node.js is pretty good. We just want a little sugar on top.
 MongoDB's native Node.js driver. It's a real deal ODM with tons of features.
 You should check it out.
 
-We wanted something in between the MongoDB driver and Mongoose. Something more
-light weight. Something where we can interact with collections using simple
-Javascript classes and get document results as instances of these classes.
+We wanted something in between the MongoDB driver and Mongoose. Something light
+weight where we can interact with collections using simple JavaScript classes
+and get document results as instances of these classes.
 
 We're also big fans of [hapijs](http://hapijs.com/) and their object schema
 validation library [joi](https://github.com/hapijs/joi). Joi works really well
 for defining a model's data schema.
 
-It's just Javascript.
+It's just JavaScript.
 
 
 ## Install
@@ -78,7 +78,7 @@ var plugin = {
     options: {
         mongodb: {
           url: 'mongodb://localhost:27017/hapi-mongo-models-test',
-          settings: { ... }
+          options: { ... }
         },
         autoIndex: false,
         models: {
@@ -107,7 +107,7 @@ Or include it in your composer manifest.
         "hapi-mongo-models": {
             "mongodb": {
               "url": "mongodb://localhost:27017/hapi-mongo-models-test",
-              "settings": { ... },
+              "options": { ... },
             },
             "autoIndex": false,
             "models": {
@@ -123,7 +123,7 @@ The options passed to the plugin is an object where:
 
  - `mongodb` - is an object where:
     - `url` - a string representing the connection url for MongoDB.
-    - `settings` - an optional object passed to the MongoDB's native connect function.
+    - `options` - an optional object passed to the MongoDB's native connect function.
  - `autoIndex` - a boolean specifying if the plugin should call `ensureIndex` for each
     model. Defaults to `true`. Typically set to `false` in production environments.
  - `models` - an object where each key is the exposed model name and each value is the
@@ -174,7 +174,7 @@ Connects to a MongoDB server where:
 
  - `config` - an object with the following keys:
     - `url` - the connection string passed to `MongoClient.connect`.
-    - `settings` - an optional object passed to `MongoClient.connect`.
+    - `options` - an optional object passed to `MongoClient.connect`.
  - `callback` - the callback method using the signature `function (err, db)`
     where:
     - `err` - if the connection failed, the error reason, otherwise `null`.
@@ -226,11 +226,11 @@ where:
  - `results` - is the original `results` if any.
  - any remaining arguments to be sent back if present.
 
-#### `pagedFind(query, fields, sort, limit, page, callback)`
+#### `pagedFind(filter, fields, sort, limit, page, callback)`
 
 A helper method to find documents with paginated results where:
 
- - `query` - is a query object, defining the conditions the documents need to
+ - `filter` - is a filter object, defining the conditions the documents need to
     apply.
  - `fields` - indicates which fields should be included in the response
     (default is all). Can be a string with space separated field names.
@@ -243,7 +243,7 @@ A helper method to find documents with paginated results where:
     results)` where:
     - `err` - if the query failed, the error reason, otherwise null.
     - `results` - the results object where:
-        - `data` - an array of results from the query.
+        - `data` - an array of documents from the query as class instances.
         - `pages` - an object where:
             - `current` - a number indicating the current page.
             - `prev` - a number indicating the previous page.
@@ -278,87 +278,217 @@ Returns a MongoDB friendly sort object.
 
 #### `findById(id, [options], callback)`
 
-Finds one document using MongoDB's native `findOne` method where:
+Finds a document by id using MongoDB's native `findOne` method where:
 
  - `id` - is a string value of the `_id` to find. It will be casted to the type
     of `_idClass`.
  - `options` - an options object passed to MongoDB's native `findOne` method.
- - `callback` - the callback method using the signature `function (err, results)`
+ - `callback` - the callback method using the signature `function (err, result)`
     where:
     - `err` - if the query failed, the error reason, otherwise `null`.
-    - `results` - if the query succeeded, the results of the query.
+    - `result` - if the query succeeded, a document as a class instance.
 
 Note: `callback` passes through `resultFactory`.
 
 #### `findByIdAndUpdate(id, update, [options], callback)`
 
-Finds one document using MongoDB's native `findAndModify` method where:
+Finds a document by id, updates it and returns the document using MongoDB's
+native `findOneAndUpdate` method where:
 
  - `id` - is a string value of the `_id` to find. It will be casted to the type
-    of `_idClass`.
+   of `_idClass`.
  - `update` - an object containing the fields/values to be updated.
  - `options` - an optional options object passed to MongoDB's native
-    `findAndModify` method.
- - `callback` - the callback method using the signature `function (err, results)`
-    where:
+   `findAndModify` method. Defaults to `{ returnOriginal: false }`.
+ - `callback` - the callback method using the signature `function (err, result)`
+   where:
     - `err` - if the query failed, the error reason, otherwise `null`.
-    - `results` - if the query succeeded, the results of the query.
+    - `result` - if the query succeeded, a document as a class instance.
 
 
 Note: `callback` passes through `resultFactory`.
 
-#### `findByIdAndRemove(id, callback)`
+#### `findByIdAndDelete(id, callback)`
 
-Removes one document using MongoDB's native `remove` method where:
+Finds a document by id, deletes it and returns the document using MongoDB's
+native `findOneAndDelete` method where:
 
  - `id` - is a string value of the `_id` to find. It will be casted to the type
-    of `_idClass`.
- - `callback` - the callback method using the signature `function (err)`
-    where:
+   of `_idClass`.
+ - `callback` - the callback method using the signature `function (err, result)`
+   where:
     - `err` - if the query failed, the error reason, otherwise `null`.
+    - `result` - if the query succeeded, a document as a class instance.
+
+#### `find(filter, [options], callback)`
+
+Returns an array of documents using MongoDB's native `find` method where:
+
+ - `filter` - a filter object used to select the documents.
+ - `options` - an options object passed to MongoDB's native `find` method.
+ - `callback` - the callback method using the signature `function (err, results)`
+   where:
+    - `err` - if the query failed, the error reason, otherwise `null`.
+    - `results` - if the query succeeded, an array of documents as class
+      instances.
+
+Note: `callback` passes through `resultFactory`.
+
+#### `findOne(filter, [options], callback)`
+
+Returns a document using MongoDB's native `findOne` method where:
+
+ - `filter` - a filter object used to select the document.
+ - `options` - an options object passed to MongoDB's native `findOne` method.
+ - `callback` - the callback method using the signature `function (err, result)`
+   where:
+    - `err` - if the query failed, the error reason, otherwise `null`.
+    - `result` - if the query succeeded, a document as a class instance.
+
+Note: `callback` passes through `resultFactory`.
+
+#### `findOneAndUpdate(filter, [options], callback)`
+
+Finds a document, updates it and returns the new document using MongoDB's
+native `findOneAndUpdate` method where:
+
+ - `filter` - a filter object used to select the document to update.
+ - `options` - an options object passed to MongoDB's native `findOneAndUpdate`
+   method. Defaults to `{ returnOriginal: false }`.
+ - `callback` - the callback method using the signature `function (err, result)`
+   where:
+    - `err` - if the query failed, the error reason, otherwise `null`.
+    - `result` - if the query succeeded, a document as a class instance.
+
+Note: `callback` passes through `resultFactory`.
+
+#### `findOneAndDelete(filter, [options], callback)`
+
+Finds a document, deletes it and returns the document using MongoDB's native
+`findOneAndDelete` method where:
+
+ - `filter` - a filter object used to select the document to delete.
+ - `options` - an options object passed to MongoDB's native `findOneAndDelete`
+   method.
+ - `callback` - the callback method using the signature `function (err, count)`
+   where:
+    - `err` - if the query failed, the error reason, otherwise `null`.
+    - `count` - if the query succeeded, a number indicating how many documents
+      were deleted.
+
+#### `insertOne(doc, [options], callback)`
+
+Inserts a document and returns the new document using MongoDB's native
+`insertOne` method where:
+
+ - `doc` - a document object to insert.
+ - `options` - an options object passed to MongoDB's native `insertOne` method.
+ - `callback` - the callback method using the signature `function (err, results)`
+   where:
+    - `err` - if the query failed, the error reason, otherwise `null`.
+    - `results` - if the query succeeded, an array of documents as a class
+      instances.
+
+Note: `callback` passes through `resultFactory`.
+
+#### `insertMany(docs, [options], callback)`
+
+Inserts multiple documents and returns the new documents using MongoDB's native
+`insertMany` method where:
+
+ - `docs` - an array of document objects to insert.
+ - `options` - an options object passed to MongoDB's native `insertMany` method.
+ - `callback` - the callback method using the signature `function (err, results)`
+   where:
+    - `err` - if the query failed, the error reason, otherwise `null`.
+    - `results` - if the query succeeded, an array of documents as a class
+      instances.
+
+Note: `callback` passes through `resultFactory`.
+
+#### `updateOne(filter, update, [options], callback)`
+
+Updates a document and returns the count of modified documents using MongoDB's
+native `updateOne` method where:
+
+ - `filter` - a filter object used to select the document to update.
+ - `update` - the update operations object.
+ - `options` - an options object passed to MongoDB's native `updateOne` method.
+ - `callback` - the callback method using the signature `function (err, count)`
+   where:
+    - `err` - if the query failed, the error reason, otherwise `null`.
+    - `count` - if the query succeeded, a number indicating how many documents
+      were modified.
+
+#### `updateMany(filter, update, [options], callback)`
+
+Updates multiple documents and returns the count of modified documents using
+MongoDB's native `updateMany` method where:
+
+ - `filter` - a filter object used to select the documents to update.
+ - `update` - the update operations object.
+ - `options` - an options object passed to MongoDB's native `updateOne` method.
+ - `callback` - the callback method using the signature `function (err, count)`
+   where:
+    - `err` - if the query failed, the error reason, otherwise `null`.
+    - `count` - if the query succeeded, a number indicating how many documents
+      were modified.
+
+#### `replaceOne(filter, doc, [options], callback)`
+
+Replaces a document and returns the count of modified documents using
+MongoDB's native `replaceOne` method where:
+
+ - `filter` - a filter object used to select the document to replace.
+ - `doc` - the document that replaces the matching document.
+ - `options` - an options object passed to MongoDB's native `replaceOne` method.
+ - `callback` - the callback method using the signature `function (err, count)`
+   where:
+    - `err` - if the query failed, the error reason, otherwise `null`.
+    - `count` - if the query succeeded, a number indicating how many documents
+      were modified.
+
+#### `deleteOne(filter, [options], callback)`
+
+Deletes a document and returns the count of deleted documents using
+MongoDB's native `deleteOne` method where:
+
+ - `filter` - a filter object used to select the document to remove.
+ - `options` - an options object passed to MongoDB's native `deleteOne` method.
+ - `callback` - the callback method using the signature `function (err, count)`
+   where:
+    - `err` - if the query failed, the error reason, otherwise `null`.
+    - `count` - if the query succeeded, a number indicating how many documents
+      were deleted.
+
+#### `deleteMany(filter, [options], callback)`
+
+Deletes multiple documents and returns the count of deleted documents using
+MongoDB's native `deleteMany` method where:
+
+ - `filter` - a filter object used to select the documents to remove.
+ - `options` - an options object passed to MongoDB's native `deleteMany` method.
+ - `callback` - the callback method using the signature `function (err, count)`
+   where:
+    - `err` - if the query failed, the error reason, otherwise `null`.
+    - `count` - if the query succeeded, a number indicating how many documents
+      were deleted.
+
 
 ### Proxied methods
+
+These methods literally call the native driver methods without any
+modification.
 
 #### `ensureIndex(fieldorspec, options, callback)`
 
 Proxied call to MongoDB's native driver. See:
 http://mongodb.github.io/node-mongodb-native/api-generated/collection.html#ensureindex
 
-#### `count([query], [options], callback)`
+#### `count([filter], [options], callback)`
 
 Proxied call to MongoDB's native driver. See:
 http://mongodb.github.io/node-mongodb-native/api-generated/collection.html#count
-
-#### `find(query, [options], callback)`
-
-Proxied call to MongoDB's native driver. See:
-http://mongodb.github.io/node-mongodb-native/api-generated/collection.html#find
-
-Note: `callback` passes through `resultFactory`.
-
-#### `findOne(query, [options], callback)`
-
-Proxied call to MongoDB's native driver. See:
-http://mongodb.github.io/node-mongodb-native/api-generated/collection.html#findone
-
-Note: `callback` passes through `resultFactory`.
-
-#### `insert(docs, [options], callback)`
-
-Proxied call to MongoDB's native driver. See:
-http://mongodb.github.io/node-mongodb-native/api-generated/collection.html#insert
-
-Note: `callback` passes through `resultFactory`.
-
-#### `update(selector, document, [options], [callback])`
-
-Proxied call to MongoDB's native driver. See:
-http://mongodb.github.io/node-mongodb-native/api-generated/collection.html#update
-
-#### `remove([selector], [options], [callback])`
-
-Proxied call to MongoDB's native driver. See:
-http://mongodb.github.io/node-mongodb-native/api-generated/collection.html#remove
 
 
 ## Examples
