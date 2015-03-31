@@ -46,7 +46,7 @@ var Joi = require('joi');
 var ObjectAssign = require('object-assign');
 var BaseModel = require('hapi-mongo-models').BaseModel;
 
-var Cat = BaseModel.extend({
+var Customer = BaseModel.extend({
     // instance prototype
     constructor: function (attrs) {
 
@@ -54,18 +54,18 @@ var Cat = BaseModel.extend({
     }
 });
 
-Cat._collection = 'cats'; // the mongo collection name
+Customer._collection = 'customers'; // the mongo collection name
 
-Cat.schema = Joi.object().keys({
+Customer.schema = Joi.object().keys({
     name: Joi.string().required()
 });
 
-Cat.staticFunction = function () {
+Customer.staticFunction = function () {
 
     // static class function
 };
 
-module.exports = Cat;
+module.exports = Customer;
 ```
 
 ### Server plugin
@@ -82,8 +82,8 @@ var plugin = {
         },
         autoIndex: false,
         models: {
-            Customers: './path/to/customers',
-            Orders: './path/to/orders'
+            Customer: './path/to/customer',
+            Order: './path/to/order'
         }
     }
 };
@@ -111,8 +111,8 @@ Or include it in your composer manifest.
             },
             "autoIndex": false,
             "models": {
-              "Customers": "./path/to/customers",
-              "Orders": "./path/to/orders"
+              "Customer": "./path/to/customer",
+              "Order": "./path/to/order"
             }
         }
     }
@@ -519,21 +519,15 @@ MongoDB's native `deleteMany` method where:
     - `count` - if the query succeeded, a number indicating how many documents
       were deleted.
 
-
-### Proxied methods
-
-These methods literally call the native driver methods without any
-modification.
-
-#### `ensureIndex(fieldorspec, options, callback)`
+#### `ensureIndex(fieldOrSpec, [options], callback)`
 
 Proxied call to MongoDB's native driver. See:
-http://mongodb.github.io/node-mongodb-native/api-generated/collection.html#ensureindex
+http://mongodb.github.io/node-mongodb-native/2.0/api/Collection.html#ensureIndex
 
-#### `count([filter], [options], callback)`
+#### `count(query, [options], callback)`
 
 Proxied call to MongoDB's native driver. See:
-http://mongodb.github.io/node-mongodb-native/api-generated/collection.html#count
+http://mongodb.github.io/node-mongodb-native/2.0/api/Collection.html#count
 
 
 ## Examples
