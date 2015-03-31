@@ -186,6 +186,7 @@ Creates a new model class where:
       constructor.
 
 ```js
+var BaseModel = require('hapi-mongo-models').BaseModel;
 var ObjectAssign = require('object-assign');
 
 var Kitten = BaseModel.extend({
