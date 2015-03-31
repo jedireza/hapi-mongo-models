@@ -519,21 +519,15 @@ MongoDB's native `deleteMany` method where:
     - `count` - if the query succeeded, a number indicating how many documents
       were deleted.
 
-
-### Proxied methods
-
-These methods literally call the native driver methods without any
-modification.
-
-#### `ensureIndex(fieldorspec, options, callback)`
+#### `ensureIndex(fieldOrSpec, [options], callback)`
 
 Proxied call to MongoDB's native driver. See:
-http://mongodb.github.io/node-mongodb-native/api-generated/collection.html#ensureindex
+http://mongodb.github.io/node-mongodb-native/2.0/api/Collection.html#ensureIndex
 
-#### `count([filter], [options], callback)`
+#### `count(query, [options], callback)`
 
 Proxied call to MongoDB's native driver. See:
-http://mongodb.github.io/node-mongodb-native/api-generated/collection.html#count
+http://mongodb.github.io/node-mongodb-native/2.0/api/Collection.html#count
 
 
 ## Examples
