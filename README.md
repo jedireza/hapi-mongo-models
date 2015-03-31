@@ -129,6 +129,51 @@ The options passed to the plugin is an object where:
  - `models` - an object where each key is the exposed model name and each value is the
     path (relative to the current working directory) of where to find the model on disk.
 
+Example usage in a route handler:
+
+```js
+// customer plugin
+
+exports.register = function (server, options, next) {
+
+    server.route({
+        method: 'GET',
+        path: '/customers',
+        config: {
+            validate: {
+                query: {
+                    name: Joi.string().allow('')
+                }
+            }
+        },
+        handler: function (request, reply) {
+
+            var Customer = request.server.plugins['hapi-mongo-models'].Customer;
+            var filter = {};
+
+            if (request.query.name) {
+                filter['name'] = request.query.name;
+            }
+
+            Customer.find(filter, function (err, results) {
+
+                if (err) {
+                    return reply(err);
+                }
+
+                reply(results);
+            });
+        }
+    });
+
+    next();
+};
+
+exports.register.attributes = {
+    name: 'customers'
+};
+```
+
 
 ## API
 
