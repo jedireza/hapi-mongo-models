@@ -34,12 +34,12 @@ $ npm install hapi-mongo-models
 
 ## Usage
 
-### Base model
+### Creating models
 
 You extend the `BaseModel` to create new model classes. The base model also
 acts as a singleton so all models can share one db connection.
 
-Let's create a `Cat` model.
+Let's create a `Customer` model.
 
 ```js
 var Joi = require('joi');
@@ -70,15 +70,19 @@ module.exports = Customer;
 
 ### Server plugin
 
-Register the plugin manually.
+During plugin registration we connect to MongoDB using the supplied options.
+
+#### Register manually
 
 ```js
+var HapiMongoModels = require('hapi-mongo-models');
+
 var plugin = {
-    register: require('hapi-mongo-models'),
+    register: HapiMongoModels,
     options: {
         mongodb: {
           url: 'mongodb://localhost:27017/hapi-mongo-models-test',
-          options: { ... }
+          options: {}
         },
         autoIndex: false,
         models: {
@@ -96,7 +100,7 @@ server.register(plugin, function (err) {
  });
 ```
 
-Or include it in your composer manifest.
+#### Register via manifest
 
 ```json
 {
@@ -107,7 +111,7 @@ Or include it in your composer manifest.
         "hapi-mongo-models": {
             "mongodb": {
               "url": "mongodb://localhost:27017/hapi-mongo-models-test",
-              "options": { ... },
+              "options": {},
             },
             "autoIndex": false,
             "models": {
@@ -119,6 +123,8 @@ Or include it in your composer manifest.
 }
 ```
 
+### Plugin options
+
 The options passed to the plugin is an object where:
 
  - `mongodb` - is an object where:
@@ -128,6 +134,8 @@ The options passed to the plugin is an object where:
     model. Defaults to `true`. Typically set to `false` in production environments.
  - `models` - an object where each key is the exposed model name and each value is the
     path (relative to the current working directory) of where to find the model on disk.
+
+### Example
 
 Example usage in a route handler:
 
@@ -152,7 +160,7 @@ exports.register = function (server, options, next) {
             var filter = {};
 
             if (request.query.name) {
-                filter['name'] = request.query.name;
+                filter.name = request.query.name;
             }
 
             Customer.find(filter, function (err, results) {
@@ -176,6 +184,8 @@ exports.register.attributes = {
 
 
 ## API
+
+### Constructor
 
 #### `extend(protoProps)`
 
@@ -201,18 +211,59 @@ var Kitten = BaseModel.extend({
 });
 ```
 
+### Properties
+
 #### `_idClass`
 
 The type used to cast `_id` properties. Defaults to
 [`MongoDB.ObjectId`](http://docs.mongodb.org/manual/reference/object-id/).
 
-#### `ObjectId`
+If you wanted to use plain strings for your document `id` properties you could:
 
-An alias to `MongoDB.ObjectId`.
+```js
+Kitten._idClass = String;
+```
+
+When you define a custom `_idClass` property for your model you just need to
+pass an `_id` parameter of that type when you create new documents.
+
+```js
+var data = {
+    _id: 'captain-cute',
+    name: 'Captain Cute'
+};
+
+Kitten.insert(data, function (err, results) {
+
+    // handle response
+});
+```
+
+#### `_collection`
+
+The name of the collection in MongoDB.
+
+```js
+Kitten._collection = 'kittens';
+```
 
 #### `schema`
 
 A `joi` object schema. See: https://github.com/hapijs/joi
+
+```js
+Kitten.schema = Joi.object().keys({
+    _id: Joi.string(),
+    name: Joi.string().required(),
+    email: Joi.string().required()
+});
+```
+
+#### `ObjectId`
+
+An alias to `MongoDB.ObjectId`.
+
+### Methods
 
 #### `connect(config, callback)`
 
@@ -235,6 +286,29 @@ Closes the current db connection.
 Loops over the static `indexes` array property of a model class calling
 `ensureIndex`.
 
+Indexes are defined as a static property on your models like:
+
+```js
+Kitten.indexes = [
+    [{ name: 1 }],
+    [{ email: 1 }]
+];
+```
+
+#### `ensureIndex(fieldOrSpec, [options], callback)`
+
+Ensures that an index exists, if it does not it creates it where:
+
+ - `fieldOrSpec` - an object contains the field and value pairs where the field
+   is the index key and the value describes the type of index for that field. For
+   an ascending index on a field, specify a value of `1`; for descending index,
+   specify a value of `-1`.
+ - `options` - an options object passed to MongoDB's native `ensureIndex` method.
+ - `callback` - the callback method using the signature `function (err, result)`
+    where:
+    - `err` - if creating the index failed, the error reason, otherwise `null`.
+    - `result` - if creating the index succeeded, the result object.
+
 #### `validate(input, callback)`
 
 Uses `joi` validation using the static `schema` object property of a model
@@ -246,6 +320,17 @@ class to validate `input` where:
     - `err` - if validation failed, the error reason, otherwise null.
     - `value` - the validated value with any type conversions and other
        modifiers applied.
+
+```js
+var data = {
+    name: 'Captain Cute'
+};
+
+Kitten.validate(data, function (err, value) {
+
+    // handle results
+});
+```
 
 See: https://github.com/hapijs/joi#validatevalue-schema-options-callback
 
@@ -260,8 +345,20 @@ class to validate the instance data of a model where:
     - `value` - the validated value with any type conversions and other
        modifiers applied.
 
+```js
+var cc = new Kitten({
+    name: 'Captain Cute'
+});
+
+cc.validate(function (err, value) {
+
+    // handle results
+});
+```
+
 See: https://github.com/hapijs/joi#validatevalue-schema-options-callback
 
+<!--
 #### `resultFactory(next, err, result, /* args */)`
 
 Proxies query calls turning document results into instances of the class model
@@ -271,13 +368,56 @@ where:
  - `err` - is the original `err` if any.
  - `results` - is the original `results` if any.
  - any remaining arguments to be sent back if present.
+-->
+
+#### `fieldsAdapter(fields)`
+
+A helper method to create a fields object suitable to use with MongoDB queries
+where:
+
+ - `fields` - a string with space separated fields.
+
+Returns a MongoDB friendly fields object.
+
+#### `sortAdapter(sorts)`
+
+A helper method to create a sort object suitable to use with MongoDB queries
+where:
+
+ - `sorts` - a string with space separated fields. Fields may be prefixed with
+   `-` to indicate decending sort order.
+
+Returns a MongoDB friendly sort object.
+
+#### `count(filter, [options], callback)`
+
+Counts documents matching a `filter` where:
+
+ - `filter` - a filter object used to select the documents to count.
+ - `options` - an options object passed to MongoDB's native `count` method.
+ - `callback` - the callback method using the signature `function (err, count)`
+   where:
+    - `err` - if the query failed, the error reason, otherwise `null`.
+    - `count` - if the query succeeded, a number indicating how many documents
+      matched the `filter`.
+
+#### `find(filter, [options], callback)`
+
+Finds documents where:
+
+ - `filter` - a filter object used to select the documents.
+ - `options` - an options object passed to MongoDB's native `find` method.
+ - `callback` - the callback method using the signature `function (err, results)`
+   where:
+    - `err` - if the query failed, the error reason, otherwise `null`.
+    - `results` - if the query succeeded, an array of documents as class
+      instances.
 
 #### `pagedFind(filter, fields, sort, limit, page, callback)`
 
-A helper method to find documents with paginated results where:
+Finds documents with paginated results where:
 
- - `filter` - is a filter object, defining the conditions the documents need to
-    apply.
+ - `filter` - a filter object used to select the documents.
  - `fields` - indicates which fields should be included in the response
     (default is all). Can be a string with space separated field names.
  - `sort` - indicates how to sort documents. Can be a string with space
@@ -303,28 +443,9 @@ A helper method to find documents with paginated results where:
             - `end` - a number indicating what item number the results end with.
             - `total` - a number indicating the total number of matching results.
 
-#### `fieldsAdapter(fields)`
-
-A helper method to create a fields object suitable to use with MongoDB queries
-where:
-
- - `fields` - a string with space separated fields.
-
-Returns a MongoDB friendly fields object.
-
-#### `sortAdapter(sorts)`
-
-A helper method to create a sort object suitable to use with MongoDB queries
-where:
-
- - `sorts` - a string with space separated fields. Fields may be prefixed with
-   `-` to indicate decending sort order.
-
-Returns a MongoDB friendly sort object.
-
 #### `findById(id, [options], callback)`
 
-Finds a document by id using MongoDB's native `findOne` method where:
+Finds a document by `_id` where:
 
  - `id` - is a string value of the `_id` to find. It will be casted to the type
     of `_idClass`.
@@ -334,12 +455,9 @@ Finds a document by id using MongoDB's native `findOne` method where:
     - `err` - if the query failed, the error reason, otherwise `null`.
     - `result` - if the query succeeded, a document as a class instance.
 
-Note: `callback` passes through `resultFactory`.
-
 #### `findByIdAndUpdate(id, update, [options], callback)`
 
-Finds a document by id, updates it and returns the document using MongoDB's
-native `findOneAndUpdate` method where:
+Finds a document by `_id`, updates it and returns it where:
 
  - `id` - is a string value of the `_id` to find. It will be casted to the type
    of `_idClass`.
@@ -352,12 +470,9 @@ native `findOneAndUpdate` method where:
     - `result` - if the query succeeded, a document as a class instance.
 
 
-Note: `callback` passes through `resultFactory`.
-
 #### `findByIdAndDelete(id, callback)`
 
-Finds a document by id, deletes it and returns the document using MongoDB's
-native `findOneAndDelete` method where:
+Finds a document by `_id`, deletes it and returns it where:
 
  - `id` - is a string value of the `_id` to find. It will be casted to the type
    of `_idClass`.
@@ -366,23 +481,9 @@ native `findOneAndDelete` method where:
     - `err` - if the query failed, the error reason, otherwise `null`.
     - `result` - if the query succeeded, a document as a class instance.
 
-#### `find(filter, [options], callback)`
-
-Returns an array of documents using MongoDB's native `find` method where:
-
- - `filter` - a filter object used to select the documents.
- - `options` - an options object passed to MongoDB's native `find` method.
- - `callback` - the callback method using the signature `function (err, results)`
-   where:
-    - `err` - if the query failed, the error reason, otherwise `null`.
-    - `results` - if the query succeeded, an array of documents as class
-      instances.
-
-Note: `callback` passes through `resultFactory`.
-
 #### `findOne(filter, [options], callback)`
 
-Returns a document using MongoDB's native `findOne` method where:
+Finds one document matching a `filter` where:
 
  - `filter` - a filter object used to select the document.
  - `options` - an options object passed to MongoDB's native `findOne` method.
@@ -391,12 +492,9 @@ Returns a document using MongoDB's native `findOne` method where:
     - `err` - if the query failed, the error reason, otherwise `null`.
     - `result` - if the query succeeded, a document as a class instance.
 
-Note: `callback` passes through `resultFactory`.
-
 #### `findOneAndUpdate(filter, [options], callback)`
 
-Finds a document, updates it and returns the new document using MongoDB's
-native `findOneAndUpdate` method where:
+Finds one document matching a `filter`, updates it and returns it where:
 
  - `filter` - a filter object used to select the document to update.
  - `options` - an options object passed to MongoDB's native `findOneAndUpdate`
@@ -404,14 +502,11 @@ native `findOneAndUpdate` method where:
  - `callback` - the callback method using the signature `function (err, result)`
    where:
     - `err` - if the query failed, the error reason, otherwise `null`.
-    - `result` - if the query succeeded, a document as a class instance.
-
-Note: `callback` passes through `resultFactory`.
+    - `result` - if the command succeeded, a document as a class instance.
 
 #### `findOneAndDelete(filter, [options], callback)`
 
-Finds a document, deletes it and returns the document using MongoDB's native
-`findOneAndDelete` method where:
+Finds one document matching a `filter`, deletes it and returns it where:
 
  - `filter` - a filter object used to select the document to delete.
  - `options` - an options object passed to MongoDB's native `findOneAndDelete`
@@ -419,43 +514,36 @@ Finds a document, deletes it and returns the document using MongoDB's native
  - `callback` - the callback method using the signature `function (err, count)`
    where:
     - `err` - if the query failed, the error reason, otherwise `null`.
-    - `count` - if the query succeeded, a number indicating how many documents
+    - `count` - if the command succeeded, a number indicating how many documents
       were deleted.
 
 #### `insertOne(doc, [options], callback)`
 
-Inserts a document and returns the new document using MongoDB's native
-`insertOne` method where:
+Inserts a document and returns the new document where:
 
  - `doc` - a document object to insert.
  - `options` - an options object passed to MongoDB's native `insertOne` method.
  - `callback` - the callback method using the signature `function (err, results)`
    where:
     - `err` - if the query failed, the error reason, otherwise `null`.
-    - `results` - if the query succeeded, an array of documents as a class
+    - `results` - if the command succeeded, an array of documents as a class
       instances.
-
-Note: `callback` passes through `resultFactory`.
 
 #### `insertMany(docs, [options], callback)`
 
-Inserts multiple documents and returns the new documents using MongoDB's native
-`insertMany` method where:
+Inserts multiple documents and returns them where:
 
  - `docs` - an array of document objects to insert.
  - `options` - an options object passed to MongoDB's native `insertMany` method.
  - `callback` - the callback method using the signature `function (err, results)`
    where:
     - `err` - if the query failed, the error reason, otherwise `null`.
-    - `results` - if the query succeeded, an array of documents as a class
+    - `results` - if the command succeeded, an array of documents as a class
       instances.
-
-Note: `callback` passes through `resultFactory`.
 
 #### `updateOne(filter, update, [options], callback)`
 
-Updates a document and returns the count of modified documents using MongoDB's
-native `updateOne` method where:
+Updates a document and returns the count of modified documents where:
 
  - `filter` - a filter object used to select the document to update.
  - `update` - the update operations object.
@@ -463,13 +551,12 @@ native `updateOne` method where:
  - `callback` - the callback method using the signature `function (err, count)`
    where:
     - `err` - if the query failed, the error reason, otherwise `null`.
-    - `count` - if the query succeeded, a number indicating how many documents
+    - `count` - if the command succeeded, a number indicating how many documents
       were modified.
 
 #### `updateMany(filter, update, [options], callback)`
 
-Updates multiple documents and returns the count of modified documents using
-MongoDB's native `updateMany` method where:
+Updates multiple documents and returns the count of modified documents where:
 
  - `filter` - a filter object used to select the documents to update.
  - `update` - the update operations object.
@@ -477,13 +564,12 @@ MongoDB's native `updateMany` method where:
  - `callback` - the callback method using the signature `function (err, count)`
    where:
     - `err` - if the query failed, the error reason, otherwise `null`.
-    - `count` - if the query succeeded, a number indicating how many documents
+    - `count` - if the command succeeded, a number indicating how many documents
       were modified.
 
 #### `replaceOne(filter, doc, [options], callback)`
 
-Replaces a document and returns the count of modified documents using
-MongoDB's native `replaceOne` method where:
+Replaces a document and returns the count of modified documents where:
 
  - `filter` - a filter object used to select the document to replace.
  - `doc` - the document that replaces the matching document.
@@ -496,10 +582,9 @@ MongoDB's native `replaceOne` method where:
 
 #### `deleteOne(filter, [options], callback)`
 
-Deletes a document and returns the count of deleted documents using
-MongoDB's native `deleteOne` method where:
+Deletes a document and returns the count of deleted documents where:
 
- - `filter` - a filter object used to select the document to remove.
+ - `filter` - a filter object used to select the document to delete.
  - `options` - an options object passed to MongoDB's native `deleteOne` method.
  - `callback` - the callback method using the signature `function (err, count)`
    where:
@@ -509,10 +594,9 @@ MongoDB's native `deleteOne` method where:
 
 #### `deleteMany(filter, [options], callback)`
 
-Deletes multiple documents and returns the count of deleted documents using
-MongoDB's native `deleteMany` method where:
+Deletes multiple documents and returns the count of deleted documents where:
 
- - `filter` - a filter object used to select the documents to remove.
+ - `filter` - a filter object used to select the documents to delete.
  - `options` - an options object passed to MongoDB's native `deleteMany` method.
  - `callback` - the callback method using the signature `function (err, count)`
    where:
@@ -520,22 +604,48 @@ MongoDB's native `deleteMany` method where:
     - `count` - if the query succeeded, a number indicating how many documents
       were deleted.
 
-#### `ensureIndex(fieldOrSpec, [options], callback)`
 
-Proxied call to MongoDB's native driver. See:
-http://mongodb.github.io/node-mongodb-native/2.0/api/Collection.html#ensureIndex
+## In the wild
 
-#### `count(query, [options], callback)`
-
-Proxied call to MongoDB's native driver. See:
-http://mongodb.github.io/node-mongodb-native/2.0/api/Collection.html#count
+To see `hapi-mongo-models` in action, checkout the
+[Frame](https://github.com/jedireza/frame) project's
+[models](https://github.com/jedireza/frame/tree/master/server/models).
 
 
-## Examples
+## Questions and contributing
 
-To see `hapi-mongo-models` in action, checkout [Frame](https://github.com/jedireza/frame).
+Any issues or questions (no matter how basic), open an issue. Please take the
+initiative to include basic debugging information like operating system
+and relevant version details such as:
+
+```bash
+$ npm version
+
+# { 'hapi-mongo-models': '0.0.0',
+#   npm: '2.5.1',
+#   http_parser: '2.3',
+#   modules: '14',
+#   node: '0.12.0',
+#   openssl: '1.0.1l',
+#   uv: '1.0.2',
+#   v8: '3.28.73',
+#   zlib: '1.2.8' }
+```
+
+Contributions are welcome. Your code should:
+
+ - include 100% test coverage
+ - follow the [hapi.js coding conventions](http://hapijs.com/styleguide)
+
+If you're changing something non-trivial, you may want to submit an issue
+first.
 
 
 ## License
 
 MIT
+
+
+## Don't forget
+
+What you create with `hapi-mongo-models` is more important than `hapi-mongo-models`.
