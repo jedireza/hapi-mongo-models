@@ -25,9 +25,9 @@ lab.experiment('BaseModel DB Connection', function () {
             Code.expect(err).to.not.exist();
             Code.expect(db).to.be.an.object();
 
-            Code.expect(BaseModel.db.openCalled).to.equal(true);
+            Code.expect(BaseModel.db.serverConfig.isConnected()).to.equal(true);
             BaseModel.disconnect();
-            Code.expect(BaseModel.db.openCalled).to.equal(false);
+            Code.expect(BaseModel.db.serverConfig.isConnected()).to.equal(false);
 
             done();
         });
@@ -41,7 +41,7 @@ lab.experiment('BaseModel DB Connection', function () {
         stub.mongodb.MongoClient = {
             connect: function (url, settings, callback) {
 
-                callback(Error('mongodb is gone'));
+                callback(new Error('mongodb is gone'));
             }
         };
 
@@ -103,14 +103,23 @@ lab.experiment('BaseModel Validation', function () {
 
 lab.experiment('BaseModel Result Factory', function () {
 
-    lab.test('it returns early when an error is present', function (done) {
+    var SubModel;
 
-        var SubModel = BaseModel.extend({
+
+    lab.before(function (done) {
+
+        SubModel = BaseModel.extend({
             constructor: function (attrs) {
 
                 ObjectAssign(this, attrs);
             }
         });
+
+        done();
+    });
+
+
+    lab.test('it returns early when an error is present', function (done) {
 
         var callback = function (err, result) {
 
@@ -120,18 +129,11 @@ lab.experiment('BaseModel Result Factory', function () {
             done();
         };
 
-        SubModel.resultFactory(callback, Error('it went boom'), undefined);
+        SubModel.resultFactory(callback, new Error('it went boom'), undefined);
     });
 
 
-    lab.test('it returns an instance for a single result', function (done) {
-
-        var SubModel = BaseModel.extend({
-            constructor: function (attrs) {
-
-                ObjectAssign(this, attrs);
-            }
-        });
+    lab.test('it returns an instance for a single document result', function (done) {
 
         var callback = function (err, result) {
 
@@ -140,23 +142,21 @@ lab.experiment('BaseModel Result Factory', function () {
 
             done();
         };
+        var document = {
+            _id: '54321',
+            name: 'Stimpy'
+        };
 
-        SubModel.resultFactory(callback, undefined, {name: 'Stimpy'});
+        SubModel.resultFactory(callback, undefined, document);
     });
 
 
-    lab.test('it returns an array of instances for a result array', function (done) {
-
-        var SubModel = BaseModel.extend({
-            constructor: function (attrs) {
-
-                ObjectAssign(this, attrs);
-            }
-        });
+    lab.test('it returns an array of instances for a `writeOpResult` object', function (done) {
 
         var callback = function (err, results) {
 
             Code.expect(err).to.not.exist();
+            Code.expect(results).to.be.an.array();
 
             results.forEach(function (result) {
 
@@ -165,8 +165,65 @@ lab.experiment('BaseModel Result Factory', function () {
 
             done();
         };
+        var results = {
+            ops: [
+                { name: 'Ren' },
+                { name: 'Stimpy' }
+            ]
+        };
 
-        SubModel.resultFactory(callback, undefined, [{name: 'Ren'}, {name: 'Stimpy'}]);
+        SubModel.resultFactory(callback, undefined, results);
+    });
+
+
+    lab.test('it returns a instance for a `findOpResult` object', function (done) {
+
+        var callback = function (err, result) {
+
+            Code.expect(err).to.not.exist();
+            Code.expect(result).to.be.an.object();
+            Code.expect(result).to.be.an.instanceOf(SubModel);
+
+            done();
+        };
+        var result = {
+            value: { _id: 'ren', name: 'Ren' }
+        };
+
+        SubModel.resultFactory(callback, undefined, result);
+    });
+
+
+    lab.test('it returns undefined for a `findOpResult` object that missed', function (done) {
+
+        var callback = function (err, result) {
+
+            Code.expect(err).to.not.exist();
+            Code.expect(result).to.not.exist();
+
+            done();
+        };
+        var result = {
+            value: null
+        };
+
+        SubModel.resultFactory(callback, undefined, result);
+    });
+
+
+    lab.test('it does not convert an object into an instance without an _id property', function (done) {
+
+        var callback = function (err, result) {
+
+            Code.expect(err).to.not.exist();
+            Code.expect(result).to.be.an.object();
+            Code.expect(result).to.not.be.an.instanceOf(SubModel);
+
+            done();
+        };
+        var document = { name: 'Ren' };
+
+        SubModel.resultFactory(callback, undefined, document);
     });
 });
 
@@ -197,7 +254,6 @@ lab.experiment('BaseModel Indexes', function () {
     lab.after(function (done) {
 
         BaseModel.disconnect();
-
         done();
     });
 
@@ -253,7 +309,6 @@ lab.experiment('BaseModel Indexes', function () {
         ];
 
         Code.expect(SubModel.ensureIndexes()).to.equal(undefined);
-
         done();
     });
 });
@@ -315,11 +370,16 @@ lab.experiment('BaseModel Paged Find', function () {
     });
 
 
+    lab.after(function (done) {
+
+        BaseModel.disconnect();
+        done();
+    });
+
+
     lab.afterEach(function (done) {
 
-        SubModel.remove({}, function (err, result) {
-
-            BaseModel.disconnect();
+        SubModel.deleteMany({}, function (err, result) {
 
             done();
         });
@@ -329,17 +389,17 @@ lab.experiment('BaseModel Paged Find', function () {
     lab.test('it returns early when an error occurs', function (done) {
 
         var realCount = SubModel.count;
-        SubModel.count = function (query, callback) {
-            callback(Error('count failed'));
+        SubModel.count = function (filter, callback) {
+            callback(new Error('count failed'));
         };
 
-        var query = {};
+        var filter = {};
         var fields;
         var limit = 10;
         var page = 1;
         var sort = { _id: -1 };
 
-        SubModel.pagedFind(query, fields, sort, limit, page, function (err, results) {
+        SubModel.pagedFind(filter, fields, sort, limit, page, function (err, results) {
 
             Code.expect(err).to.be.an.object();
             Code.expect(results).to.not.exist();
@@ -356,19 +416,23 @@ lab.experiment('BaseModel Paged Find', function () {
         Async.auto({
             setup: function (cb) {
 
-                var testData = [{name: 'Ren'}, {name: 'Stimpy'}, {name: 'Yak'}];
+                var testDocs = [
+                    { name: 'Ren' },
+                    { name: 'Stimpy' },
+                    { name: 'Yak' }
+                ];
 
-                SubModel.insert(testData, cb);
+                SubModel.insertMany(testDocs, cb);
             }
         }, function (err, results) {
 
-            var query = {};
+            var filter = {};
             var fields;
             var limit = 10;
             var page = 1;
             var sort = { _id: -1 };
 
-            SubModel.pagedFind(query, fields, sort, limit, page, function (err, results) {
+            SubModel.pagedFind(filter, fields, sort, limit, page, function (err, results) {
 
                 Code.expect(err).to.not.exist();
                 Code.expect(results).to.be.an.object();
@@ -384,19 +448,23 @@ lab.experiment('BaseModel Paged Find', function () {
         Async.auto({
             setup: function (cb) {
 
-                var testData = [{name: 'Ren'}, {name: 'Stimpy'}, {name: 'Yak'}];
+                var testDocs = [
+                    { name: 'Ren' },
+                    { name: 'Stimpy' },
+                    { name: 'Yak' }
+                ];
 
-                SubModel.insert(testData, cb);
+                SubModel.insertMany(testDocs, cb);
             }
         }, function (err, results) {
 
-            var query = {};
+            var filter = {};
             var fields;
             var limit = 2;
             var page = 1;
             var sort = { _id: -1 };
 
-            SubModel.pagedFind(query, fields, sort, limit, page, function (err, results) {
+            SubModel.pagedFind(filter, fields, sort, limit, page, function (err, results) {
 
                 Code.expect(err).to.not.exist();
                 Code.expect(results).to.be.an.object();
@@ -412,23 +480,23 @@ lab.experiment('BaseModel Paged Find', function () {
         Async.auto({
             setup: function (cb) {
 
-                var testData = [
-                    {name: 'Ren'},
-                    {name: 'Stimpy'},
-                    {name: 'Yak'}
+                var testDocs = [
+                    { name: 'Ren' },
+                    { name: 'Stimpy' },
+                    { name: 'Yak' }
                 ];
 
-                SubModel.insert(testData, cb);
+                SubModel.insertMany(testDocs, cb);
             }
         }, function (err, results) {
 
-            var query = { 'role.special': { $exists: true } };
+            var filter = { 'role.special': { $exists: true } };
             var fields;
             var limit = 2;
             var page = 1;
             var sort = { _id: -1 };
 
-            SubModel.pagedFind(query, fields, sort, limit, page, function (err, results) {
+            SubModel.pagedFind(filter, fields, sort, limit, page, function (err, results) {
 
                 Code.expect(err).to.not.exist();
                 Code.expect(results).to.be.an.object();
@@ -442,7 +510,7 @@ lab.experiment('BaseModel Paged Find', function () {
 
 lab.experiment('BaseModel Proxied Methods', function () {
 
-    var SubModel, liveTestData;
+    var SubModel;
 
 
     lab.before(function (done) {
@@ -466,22 +534,43 @@ lab.experiment('BaseModel Proxied Methods', function () {
     lab.after(function (done) {
 
         BaseModel.disconnect();
-
         done();
+    });
+
+
+    lab.afterEach(function (done) {
+
+        SubModel.deleteMany({}, function (err, result) {
+
+            done();
+        });
     });
 
 
     lab.test('it inserts data and returns the results', function (done) {
 
-        var testData = [
-            {name: 'Ren'},
-            {name: 'Stimpy'},
-            {name: 'Yak'}
+        var testDocs = [
+            { name: 'Ren' },
+            { name: 'Stimpy' },
+            { name: 'Yak' }
         ];
 
-        SubModel.insert(testData, function (err, results) {
+        SubModel.insertMany(testDocs, function (err, results) {
 
-            liveTestData = results;
+            Code.expect(err).to.not.exist();
+            Code.expect(results).to.be.an.array();
+            Code.expect(results.length).to.equal(3);
+
+            done(err);
+        });
+    });
+
+
+    lab.test('it inserts one document and returns the result', function (done) {
+
+        var testDoc = { name: 'Horse' };
+
+        SubModel.insertOne(testDoc, function (err, results) {
 
             Code.expect(err).to.not.exist();
             Code.expect(results).to.be.an.array();
@@ -491,75 +580,335 @@ lab.experiment('BaseModel Proxied Methods', function () {
     });
 
 
-    lab.test('it updates a document and returns the results', function (done) {
+    lab.test('it inserts many documents and returns the results', function (done) {
 
-        var query = {
-            _id: liveTestData[0]._id
-        };
-        var update = {
-            $set: { isCool: true }
-        };
+        var testDocs = [
+            { name: 'Toast' },
+            { name: 'Space' }
+        ];
 
-        SubModel.update(query, update, function (err, count, status) {
+        SubModel.insertMany(testDocs, function (err, results) {
 
             Code.expect(err).to.not.exist();
-            Code.expect(count).to.be.a.number();
-            Code.expect(status).to.be.an.object();
+            Code.expect(results).to.be.an.array();
+            Code.expect(results.length).to.equal(2);
 
             done(err);
         });
     });
 
 
+    lab.test('it updates a document and returns the results', function (done) {
+
+        Async.auto({
+            setup: function (cb) {
+
+                var testDocs = [
+                    { name: 'Ren' },
+                    { name: 'Stimpy' },
+                    { name: 'Yak' }
+                ];
+
+                SubModel.insertMany(testDocs, cb);
+            }
+        }, function (err, results) {
+
+            var filter = {
+                _id: results.setup[0]._id
+            };
+            var update = {
+                $set: { isCool: true }
+            };
+
+            SubModel.updateOne(filter, update, function (err, count) {
+
+                Code.expect(err).to.not.exist();
+                Code.expect(count).to.be.a.number();
+                Code.expect(count).to.equal(1);
+
+                done(err);
+            });
+        });
+    });
+
+
+    lab.test('it updates a document and returns the results (with options)', function (done) {
+
+        Async.auto({
+            setup: function (cb) {
+
+                var testDocs = [
+                    { name: 'Ren' },
+                    { name: 'Stimpy' },
+                    { name: 'Yak' }
+                ];
+
+                SubModel.insertMany(testDocs, cb);
+            }
+        }, function (err, results) {
+
+            var filter = {
+                _id: results.setup[0]._id
+            };
+            var update = {
+                $set: { isCool: true }
+            };
+            var options = { upsert: true };
+
+            SubModel.updateOne(filter, update, options, function (err, count) {
+
+                Code.expect(err).to.not.exist();
+                Code.expect(count).to.be.a.number();
+                Code.expect(count).to.equal(1);
+
+                done(err);
+            });
+        });
+    });
+
+
+    lab.test('it returns an error when updateOne fails', function (done) {
+
+        Async.auto({
+            setup: function (cb) {
+
+                var testDoc = { name: 'Ren' };
+
+                SubModel.insertOne(testDoc, cb);
+            }
+        }, function (err, results) {
+
+            var realCollection = BaseModel.db.collection;
+            BaseModel.db.collection = function () {
+
+                return {
+                    updateOne: function (filter, update, options, callback) {
+
+                        callback(new Error('Whoops!'));
+                    }
+                };
+            };
+
+            var filter = {};
+            var update = { $set: { isCool: true } };
+
+            SubModel.updateOne(filter, update, function (err, count) {
+
+                Code.expect(err).to.exist();
+                Code.expect(count).to.not.exist();
+
+                BaseModel.db.collection = realCollection;
+                done();
+            });
+        });
+    });
+
+
+    lab.test('it updates many documents and returns the results', function (done) {
+
+        Async.auto({
+            setup: function (cb) {
+
+                var testDocs = [
+                    { name: 'Ren' },
+                    { name: 'Stimpy' },
+                    { name: 'Yak' }
+                ];
+
+                SubModel.insertMany(testDocs, cb);
+            }
+        }, function (err, results) {
+
+            var filter = {};
+            var update = { $set: { isCool: true } };
+
+            SubModel.updateMany(filter, update, function (err, count) {
+
+                Code.expect(err).to.not.exist();
+                Code.expect(count).to.be.a.number();
+                Code.expect(count).to.equal(3);
+
+                done(err);
+            });
+        });
+    });
+
+
+    lab.test('it updates many documents and returns the results (with options)', function (done) {
+
+        Async.auto({
+            setup: function (cb) {
+
+                var testDocs = [
+                    { name: 'Ren' },
+                    { name: 'Stimpy' },
+                    { name: 'Yak' }
+                ];
+
+                SubModel.insertMany(testDocs, cb);
+            }
+        }, function (err, results) {
+
+            var filter = {};
+            var update = { $set: { isCool: true } };
+            var options = { upsert: true };
+
+            SubModel.updateMany(filter, update, options, function (err, count) {
+
+                Code.expect(err).to.not.exist();
+                Code.expect(count).to.be.a.number();
+                Code.expect(count).to.equal(3);
+
+                done(err);
+            });
+        });
+    });
+
+
+    lab.test('it returns an error when updateMany fails', function (done) {
+
+        Async.auto({
+            setup: function (cb) {
+
+                var testDoc = { name: 'Ren' };
+
+                SubModel.insertOne(testDoc, cb);
+            }
+        }, function (err, results) {
+
+            var realCollection = BaseModel.db.collection;
+            BaseModel.db.collection = function () {
+
+                return {
+                    updateMany: function (filter, update, options, callback) {
+
+                        callback(new Error('Whoops!'));
+                    }
+                };
+            };
+
+            var filter = {};
+            var update = { $set: { isCool: true } };
+
+            SubModel.updateMany(filter, update, function (err, count) {
+
+                Code.expect(err).to.exist();
+                Code.expect(count).to.not.exist();
+
+                BaseModel.db.collection = realCollection;
+                done();
+            });
+        });
+    });
+
+
     lab.test('it returns a collection count', function (done) {
 
-        SubModel.count({}, function (err, result) {
+        Async.auto({
+            setup: function (cb) {
 
-            Code.expect(err).to.not.exist();
-            Code.expect(result).to.be.a.number();
+                var testDocs = [
+                    { name: 'Ren' },
+                    { name: 'Stimpy' },
+                    { name: 'Yak' }
+                ];
 
-            done();
+                SubModel.insertMany(testDocs, cb);
+            }
+        }, function (err, results) {
+
+            SubModel.count({}, function (err, result) {
+
+                Code.expect(err).to.not.exist();
+                Code.expect(result).to.be.a.number();
+                Code.expect(result).to.equal(3);
+
+                done();
+            });
         });
     });
 
 
     lab.test('it returns a result array', function (done) {
 
-        SubModel.find({}, function (err, result) {
+        Async.auto({
+            setup: function (cb) {
 
-            Code.expect(err).to.not.exist();
-            Code.expect(result).to.be.an.array();
+                var testDocs = [
+                    { name: 'Ren' },
+                    { name: 'Stimpy' },
+                    { name: 'Yak' }
+                ];
 
-            done();
+                SubModel.insertMany(testDocs, cb);
+            }
+        }, function (err, results) {
+
+            SubModel.find({}, function (err, results) {
+
+                Code.expect(err).to.not.exist();
+                Code.expect(results).to.be.an.array();
+
+                results.forEach(function (result) {
+
+                    Code.expect(result).to.be.an.instanceOf(SubModel);
+                });
+
+                done();
+            });
         });
     });
 
 
     lab.test('it returns a single result', function (done) {
 
-        SubModel.findOne({}, function (err, result) {
+        Async.auto({
+            setup: function (cb) {
 
-            Code.expect(err).to.not.exist();
-            Code.expect(result).to.be.an.object();
+                var testDoc = { name: 'Ren' };
 
-            done();
+                SubModel.insertOne(testDoc, cb);
+            }
+        }, function (err, results) {
+
+            SubModel.findOne({}, function (err, result) {
+
+                Code.expect(err).to.not.exist();
+                Code.expect(result).to.be.an.object();
+                Code.expect(result).to.be.an.instanceOf(SubModel);
+
+                done();
+            });
         });
     });
 
 
     lab.test('it returns a single result via id', function (done) {
 
-        SubModel.findById(liveTestData[0]._id, function (err, result) {
+        Async.auto({
+            setup: function (cb) {
 
-            Code.expect(err).to.not.exist();
-            Code.expect(result).to.be.an.object();
+                var testDoc = { name: 'Ren' };
 
-            done();
+                SubModel.insertOne(testDoc, cb);
+            }
+        }, function (err, results) {
+
+            var id = results.setup[0]._id;
+
+            SubModel.findById(id, function (err, result) {
+
+                Code.expect(err).to.not.exist();
+                Code.expect(result).to.be.an.object();
+                Code.expect(result).to.be.an.instanceOf(SubModel);
+
+                done();
+            });
         });
     });
 
 
-    lab.test('it catches the exception when id casting fails during findById', function (done) {
+    lab.test('it returns and error when id casting fails during findById', function (done) {
 
         SubModel.findById('NOTVALIDOBJECTID', function (err, result) {
 
@@ -569,21 +918,33 @@ lab.experiment('BaseModel Proxied Methods', function () {
     });
 
 
-    lab.test('it updates a single document via id', function (done) {
+    lab.test('it updates a single document via findByIdAndUpdate', function (done) {
 
-        var document = { name: 'New Name' };
+        Async.auto({
+            setup: function (cb) {
 
-        SubModel.findByIdAndUpdate(liveTestData[0]._id, document, function (err, result) {
+                var testDoc = { name: 'Ren' };
 
-            Code.expect(err).to.not.exist();
-            Code.expect(result).to.be.an.object();
+                SubModel.insertOne(testDoc, cb);
+            }
+        }, function (err, results) {
 
-            done();
+            var id = results.setup[0]._id;
+            var update = { name: 'New Name' };
+
+            SubModel.findByIdAndUpdate(id, update, function (err, result) {
+
+                Code.expect(err).to.not.exist();
+                Code.expect(result).to.be.an.object();
+                Code.expect(result).to.be.an.instanceOf(SubModel);
+
+                done();
+            });
         });
     });
 
 
-    lab.test('it catches the exception when id casting fails during findByIdAndUpdate', function (done) {
+    lab.test('it returns an error when casting fails during findByIdAndUpdate', function (done) {
 
         SubModel.findByIdAndUpdate('NOTVALIDOBJECTID', {}, function (err, result) {
 
@@ -595,35 +956,310 @@ lab.experiment('BaseModel Proxied Methods', function () {
 
     lab.test('it updates a single document via id (with options)', function (done) {
 
-        var document = { name: 'New Name' };
-        var options = { upsert: true };
+        Async.auto({
+            setup: function (cb) {
 
-        SubModel.findByIdAndUpdate(liveTestData[0]._id, document, options, function (err, result) {
+                var testDoc = { name: 'Ren' };
 
-            Code.expect(err).to.not.exist();
-            Code.expect(result).to.be.an.object();
+                SubModel.insertOne(testDoc, cb);
+            }
+        }, function (err, results) {
 
-            done();
+            var id = results.setup[0]._id;
+            var update = { name: 'New Name' };
+            var options = { returnOriginal: false };
+
+            SubModel.findByIdAndUpdate(id, update, options, function (err, result) {
+
+                Code.expect(err).to.not.exist();
+                Code.expect(result).to.be.an.object();
+                Code.expect(result).to.be.an.instanceOf(SubModel);
+
+                done();
+            });
         });
     });
 
 
-    lab.test('it removes a single document via id', function (done) {
+    lab.test('it updates a single document via findOneAndUpdate', function (done) {
 
-        SubModel.findByIdAndRemove(liveTestData[0]._id, function (err, result) {
+        Async.auto({
+            setup: function (cb) {
 
-            Code.expect(err).to.not.exist();
-            Code.expect(result).to.be.a.number();
-            Code.expect(result).to.equal(1);
+                var testDoc = { name: 'Ren' };
 
-            done();
+                SubModel.insertOne(testDoc, cb);
+            }
+        }, function (err, results) {
+
+            var filter = { name: 'Ren' };
+            var update = { name: 'New Name' };
+
+            SubModel.findOneAndUpdate(filter, update, function (err, result) {
+
+                Code.expect(err).to.not.exist();
+                Code.expect(result).to.be.an.object();
+                Code.expect(result).to.be.an.instanceOf(SubModel);
+
+                done();
+            });
         });
     });
 
 
-    lab.test('it catches the exception when id casting fails during findByIdAndRemove', function (done) {
+    lab.test('it updates a single document via findOneAndUpdate (with options)', function (done) {
 
-        SubModel.findByIdAndRemove('NOTVALIDOBJECTID', function (err, result) {
+        Async.auto({
+            setup: function (cb) {
+
+                var testDoc = { name: 'Ren' };
+
+                SubModel.insertOne(testDoc, cb);
+            }
+        }, function (err, results) {
+
+            var filter = { name: 'Ren' };
+            var update = { name: 'New Name' };
+            var options = { returnOriginal: true };
+
+            SubModel.findOneAndUpdate(filter, update, options, function (err, result) {
+
+                Code.expect(err).to.not.exist();
+                Code.expect(result).to.be.an.object();
+                Code.expect(result).to.be.an.instanceOf(SubModel);
+
+                done();
+            });
+        });
+    });
+
+
+    lab.test('it replaces a single document via findOneAndReplace', function (done) {
+
+        Async.auto({
+            setup: function (cb) {
+
+                var testDoc = { name: 'Ren' };
+
+                SubModel.insertOne(testDoc, cb);
+            }
+        }, function (err, results) {
+
+            var filter = { name: 'Ren' };
+            var doc = { isCool: true };
+
+            SubModel.findOneAndReplace(filter, doc, function (err, result) {
+
+                Code.expect(err).to.not.exist();
+                Code.expect(result).to.be.an.object();
+                Code.expect(result).to.be.an.instanceOf(SubModel);
+
+                done();
+            });
+        });
+    });
+
+
+    lab.test('it replaces a single document via findOneAndReplace (with options)', function (done) {
+
+        Async.auto({
+            setup: function (cb) {
+
+                var testDoc = { name: 'Ren' };
+
+                SubModel.insertOne(testDoc, cb);
+            }
+        }, function (err, results) {
+
+            var filter = { name: 'Ren' };
+            var doc = { isCool: true };
+            var options = { returnOriginal: true };
+
+            SubModel.findOneAndReplace(filter, doc, options, function (err, result) {
+
+                Code.expect(err).to.not.exist();
+                Code.expect(result).to.be.an.object();
+                Code.expect(result).to.be.an.instanceOf(SubModel);
+
+                done();
+            });
+        });
+    });
+
+
+    lab.test('it replaces one document and returns the result', function (done) {
+
+        Async.auto({
+            setup: function (cb) {
+
+                var testDoc = { name: 'Ren' };
+
+                SubModel.insertOne(testDoc, cb);
+            }
+        }, function (err, results) {
+
+            var filter = { name: 'Ren' };
+            var doc = { isCool: true };
+
+            SubModel.replaceOne(filter, doc, function (err, count) {
+
+                Code.expect(err).to.not.exist();
+                Code.expect(count).to.be.a.number();
+                Code.expect(count).to.equal(1);
+
+                done(err);
+            });
+        });
+    });
+
+
+    lab.test('it replaces one document and returns the result (with options)', function (done) {
+
+        Async.auto({
+            setup: function (cb) {
+
+                var testDoc = { name: 'Ren' };
+
+                SubModel.insertOne(testDoc, cb);
+            }
+        }, function (err, results) {
+
+            var filter = { name: 'Ren' };
+            var doc = { isCool: true };
+            var options = { upsert: true };
+
+            SubModel.replaceOne(filter, doc, options, function (err, count) {
+
+                Code.expect(err).to.not.exist();
+                Code.expect(count).to.be.a.number();
+                Code.expect(count).to.equal(1);
+
+                done(err);
+            });
+        });
+    });
+
+
+    lab.test('it returns an error when replaceOne fails', function (done) {
+
+        Async.auto({
+            setup: function (cb) {
+
+                var testDoc = { name: 'Ren' };
+
+                SubModel.insertOne(testDoc, cb);
+            }
+        }, function (err, results) {
+
+            var realCollection = BaseModel.db.collection;
+            BaseModel.db.collection = function () {
+
+                return {
+                    replaceOne: function (filter, doc, options, callback) {
+
+                        callback(new Error('Whoops!'));
+                    }
+                };
+            };
+
+            var filter = { name: 'Ren' };
+            var doc = { isCool: true };
+
+            SubModel.replaceOne(filter, doc, function (err, count) {
+
+                Code.expect(err).to.exist();
+                Code.expect(count).to.not.exist();
+
+                BaseModel.db.collection = realCollection;
+                done();
+            });
+        });
+    });
+
+
+    lab.test('it deletes a document via findOneAndDelete', function (done) {
+
+        Async.auto({
+            setup: function (cb) {
+
+                var testDoc = { name: 'Ren' };
+
+                SubModel.insertOne(testDoc, cb);
+            }
+        }, function (err, results) {
+
+            var filter = { name: 'Ren' };
+
+            SubModel.findOneAndDelete(filter, function (err, result) {
+
+                Code.expect(err).to.not.exist();
+                Code.expect(result).to.be.an.object();
+                Code.expect(result).to.be.an.instanceOf(SubModel);
+
+                done();
+            });
+        });
+    });
+
+
+    lab.test('it deletes a document via findByIdAndDelete', function (done) {
+
+        Async.auto({
+            setup: function (cb) {
+
+                var testDoc = { name: 'Ren' };
+
+                SubModel.insertOne(testDoc, cb);
+            }
+        }, function (err, results) {
+
+            var id = results.setup[0]._id;
+
+            SubModel.findByIdAndDelete(id, function (err, result) {
+
+                Code.expect(err).to.not.exist();
+                Code.expect(result).to.be.an.object();
+                Code.expect(result).to.be.an.instanceOf(SubModel);
+
+                done();
+            });
+        });
+    });
+
+
+    lab.test('it deletes a single document via findByIdAndDelete (with options)', function (done) {
+
+        Async.auto({
+            setup: function (cb) {
+
+                var testDoc = { name: 'Ren' };
+
+                SubModel.insertOne(testDoc, cb);
+            }
+        }, function (err, results) {
+
+            var id = results.setup[0]._id;
+            var options = {
+                projection: {
+                    name: 1
+                }
+            };
+
+            SubModel.findByIdAndDelete(id, options, function (err, result) {
+
+                Code.expect(err).to.not.exist();
+                Code.expect(result).to.be.an.object();
+                Code.expect(result).to.be.an.instanceOf(SubModel);
+
+                done();
+            });
+        });
+    });
+
+
+    lab.test('it returns an error when id casting fails during findByIdAndDelete', function (done) {
+
+        SubModel.findByIdAndDelete('NOTVALIDOBJECTID', function (err, result) {
 
             Code.expect(err).to.exist();
             done();
@@ -631,15 +1267,125 @@ lab.experiment('BaseModel Proxied Methods', function () {
     });
 
 
-    lab.test('it removes documents via query', function (done) {
+    lab.test('it deletes one document via deleteOne', function (done) {
 
-        SubModel.remove({}, function (err, result) {
+        Async.auto({
+            setup: function (cb) {
 
-            Code.expect(err).to.not.exist();
-            Code.expect(result).to.be.a.number();
-            Code.expect(result).to.equal(2);
+                var testDoc = { name: 'Ren' };
 
-            done();
+                SubModel.insertOne(testDoc, cb);
+            }
+        }, function (err, results) {
+
+            SubModel.deleteOne({}, function (err, count) {
+
+                Code.expect(err).to.not.exist();
+                Code.expect(count).to.be.a.number();
+                Code.expect(count).to.equal(1);
+
+                done();
+            });
+        });
+    });
+
+
+    lab.test('it returns an error when deleteOne fails', function (done) {
+
+        Async.auto({
+            setup: function (cb) {
+
+                var testDocs = [
+                    { name: 'Ren' },
+                    { name: 'Stimpy' }
+                ];
+
+                SubModel.insertMany(testDocs, cb);
+            }
+        }, function (err, results) {
+
+            var realCollection = BaseModel.db.collection;
+            BaseModel.db.collection = function () {
+
+                return {
+                    deleteOne: function (filter, callback) {
+
+                        callback(new Error('Whoops!'));
+                    }
+                };
+            };
+
+            SubModel.deleteOne({}, function (err, count) {
+
+                Code.expect(err).to.exist();
+                Code.expect(count).to.not.exist();
+
+                BaseModel.db.collection = realCollection;
+                done();
+            });
+        });
+    });
+
+
+    lab.test('it deletes multiple documents and returns the count via deleteMany', function (done) {
+
+        Async.auto({
+            setup: function (cb) {
+
+                var testDocs = [
+                    { name: 'Ren' },
+                    { name: 'Stimpy' }
+                ];
+
+                SubModel.insertMany(testDocs, cb);
+            }
+        }, function (err, results) {
+
+            SubModel.deleteMany({}, function (err, count) {
+
+                Code.expect(err).to.not.exist();
+                Code.expect(count).to.be.a.number();
+                Code.expect(count).to.equal(2);
+
+                done();
+            });
+        });
+    });
+
+
+    lab.test('it returns an error when deleteMany fails', function (done) {
+
+        Async.auto({
+            setup: function (cb) {
+
+                var testDocs = [
+                    { name: 'Ren' },
+                    { name: 'Stimpy' }
+                ];
+
+                SubModel.insertMany(testDocs, cb);
+            }
+        }, function (err, results) {
+
+            var realCollection = BaseModel.db.collection;
+            BaseModel.db.collection = function () {
+
+                return {
+                    deleteMany: function (filter, callback) {
+
+                        callback(new Error('Whoops!'));
+                    }
+                };
+            };
+
+            SubModel.deleteMany({}, function (err, count) {
+
+                Code.expect(err).to.exist();
+                Code.expect(count).to.not.exist();
+
+                BaseModel.db.collection = realCollection;
+                done();
+            });
         });
     });
 });
