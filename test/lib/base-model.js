@@ -151,7 +151,7 @@ lab.experiment('BaseModel Result Factory', function () {
     });
 
 
-    lab.test('it returns an array of instances for a `WriteOpResultObject`', function (done) {
+    lab.test('it returns an array of instances for a `writeOpResult` object', function (done) {
 
         var callback = function (err, results) {
 
@@ -173,6 +173,41 @@ lab.experiment('BaseModel Result Factory', function () {
         };
 
         SubModel.resultFactory(callback, undefined, results);
+    });
+
+
+    lab.test('it returns a instance for a `findOpResult` object', function (done) {
+
+        var callback = function (err, result) {
+
+            Code.expect(err).to.not.exist();
+            Code.expect(result).to.be.an.object();
+            Code.expect(result).to.be.an.instanceOf(SubModel);
+
+            done();
+        };
+        var result = {
+            value: { _id: 'ren', name: 'Ren' }
+        };
+
+        SubModel.resultFactory(callback, undefined, result);
+    });
+
+
+    lab.test('it returns undefined for a `findOpResult` object that missed', function (done) {
+
+        var callback = function (err, result) {
+
+            Code.expect(err).to.not.exist();
+            Code.expect(result).to.not.exist();
+
+            done();
+        };
+        var result = {
+            value: null
+        };
+
+        SubModel.resultFactory(callback, undefined, result);
     });
 
 
