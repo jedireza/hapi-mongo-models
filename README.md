@@ -358,18 +358,6 @@ cc.validate(function (err, value) {
 
 See: https://github.com/hapijs/joi#validatevalue-schema-options-callback
 
-<!--
-#### `resultFactory(next, err, result, /* args */)`
-
-Proxies query calls turning document results into instances of the class model
-where:
-
- - `next` - is the original `callback` that expects the results.
- - `err` - is the original `err` if any.
- - `results` - is the original `results` if any.
- - any remaining arguments to be sent back if present.
--->
-
 #### `fieldsAdapter(fields)`
 
 A helper method to create a fields object suitable to use with MongoDB queries
