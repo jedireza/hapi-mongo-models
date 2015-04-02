@@ -129,7 +129,7 @@ The options passed to the plugin is an object where:
 
  - `mongodb` - is an object where:
     - `url` - a string representing the connection url for MongoDB.
-    - `options` - an optional object passed to the MongoDB's native connect function.
+    - `options` - an optional object passed to MongoDB's native connect function.
  - `autoIndex` - a boolean specifying if the plugin should call `ensureIndex` for each
     model. Defaults to `true`. Typically set to `false` in production environments.
  - `models` - an object where each key is the exposed model name and each value is the
@@ -218,7 +218,7 @@ var Kitten = BaseModel.extend({
 The type used to cast `_id` properties. Defaults to
 [`MongoDB.ObjectId`](http://docs.mongodb.org/manual/reference/object-id/).
 
-If you wanted to use plain strings for your document `id` properties you could:
+If you wanted to use plain strings for your document `_id` properties you could:
 
 ```js
 Kitten._idClass = String;
@@ -363,19 +363,31 @@ See: https://github.com/hapijs/joi#validatevalue-schema-options-callback
 A helper method to create a fields object suitable to use with MongoDB queries
 where:
 
- - `fields` - a string with space separated fields.
+ - `fields` - a string with space separated field names.
 
 Returns a MongoDB friendly fields object.
+
+```js
+Kitten.fieldsAdapter('name email');
+
+// { name: true, 'email': true }
+```
 
 #### `sortAdapter(sorts)`
 
 A helper method to create a sort object suitable to use with MongoDB queries
 where:
 
- - `sorts` - a string with space separated fields. Fields may be prefixed with
-   `-` to indicate decending sort order.
+ - `sorts` - a string with space separated field names. Fields may be prefixed
+   with `-` to indicate decending sort order.
 
 Returns a MongoDB friendly sort object.
+
+```js
+Kitten.sortAdapter('name -email');
+
+// { name: 1, email: -1 }
+```
 
 #### `count(filter, [options], callback)`
 
@@ -499,11 +511,10 @@ Finds one document matching a `filter`, deletes it and returns it where:
  - `filter` - a filter object used to select the document to delete.
  - `options` - an options object passed to MongoDB's native `findOneAndDelete`
    method.
- - `callback` - the callback method using the signature `function (err, count)`
+ - `callback` - the callback method using the signature `function (err, result)`
    where:
     - `err` - if the query failed, the error reason, otherwise `null`.
-    - `count` - if the command succeeded, a number indicating how many documents
-      were deleted.
+    - `result` - if the query succeeded, a document as a class instance.
 
 #### `insertOne(doc, [options], callback)`
 
