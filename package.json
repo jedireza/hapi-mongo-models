@@ -1,6 +1,6 @@
 {
   "name": "hapi-mongo-models",
-  "version": "2.0.0",
+  "version": "2.0.1",
   "description": "MongoDB object models for hapi applications",
   "main": "index.js",
   "scripts": {
