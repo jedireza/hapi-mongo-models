@@ -9,8 +9,15 @@ exports.register = function (server, options, next) {
     var autoIndex = options.hasOwnProperty('autoIndex') ? options.autoIndex : true;
 
     Object.keys(models).forEach(function (key) {
-
-        models[key] = require(Path.join(process.cwd(), models[key]));
+        if (typeof models[key] === 'string') {
+            if (models[key].charAt(0) === '/') {
+                models[key] = require(models[key]);
+            } else if (models[key].charAt(0) === '.') {
+                models[key] = require(Path.join(process.cwd(), models[key]));
+            } else {
+                models[key] = require(models[key]);
+            }
+        }
     });
 
     BaseModel.connect(mongodb, function (err, db) {
