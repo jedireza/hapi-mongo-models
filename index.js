@@ -1,16 +1,54 @@
 var Path = require('path');
+var Hoek = require('hoek');
 var BaseModel = require('./lib/base-model');
+
+
+exports.BaseModel = BaseModel;
 
 
 exports.register = function (server, options, next) {
 
+    Hoek.assert(options.mongodb, 'options.mongodb is required');
+
     var models = options.models || {};
     var mongodb = options.mongodb;
     var autoIndex = options.hasOwnProperty('autoIndex') ? options.autoIndex : true;
+    var addModel = function (key, model) {
+
+        Hoek.assert(
+            model.prototype instanceof BaseModel.constructor,
+            'Model [' + key + '] must be extended from BaseModel.'
+        );
+
+        models[key] = model;
+        server.expose(key, model);
+    };
 
     Object.keys(models).forEach(function (key) {
 
-        models[key] = require(Path.join(process.cwd(), models[key]));
+        var modelPath = models[key];
+
+        if (modelPath !== Path.resolve(modelPath)) {
+            modelPath = Path.join(process.cwd(), modelPath);
+        }
+
+        addModel(key, require(modelPath));
+    });
+
+    server.expose('addModel', addModel);
+
+    server.expose('BaseModel', BaseModel);
+
+    server.after(function (server, done) {
+
+        if (autoIndex) {
+            Object.keys(models).forEach(function (key) {
+
+                models[key].ensureIndexes();
+            });
+        }
+
+        done();
     });
 
     BaseModel.connect(mongodb, function (err, db) {
@@ -20,23 +58,9 @@ exports.register = function (server, options, next) {
             return next(err);
         }
 
-        Object.keys(models).forEach(function (key) {
-
-            if (autoIndex) {
-                models[key].ensureIndexes();
-            }
-
-            server.expose(key, models[key]);
-        });
-
-        server.expose('BaseModel', BaseModel);
-
         next();
     });
 };
-
-
-exports.BaseModel = BaseModel;
 
 
 exports.register.attributes = {
