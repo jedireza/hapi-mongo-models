@@ -6,13 +6,7 @@ var internals = {};
 internals.requireModel = function (models) {
     return function (modelName) {
         if (typeof models[modelName] === 'string') {
-            if (models[modelName].charAt(0) === '/') {
-                models[modelName] = require(models[modelName]);
-            } else if (models[modelName].charAt(0) === '.') {
-                models[modelName] = require(Path.join(process.cwd(), models[modelName]));
-            } else {
-                models[modelName] = require(models[modelName]);
-            }
+            models[modelName] = require(Path.join(process.cwd(), models[modelName]));
         }
     };
 };
