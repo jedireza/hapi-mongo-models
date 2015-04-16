@@ -130,7 +130,7 @@ The options passed to the plugin is an object where:
  - `mongodb` - is an object where:
     - `url` - a string representing the connection url for MongoDB.
     - `options` - an optional object passed to MongoDB's native connect function.
- - `autoIndex` - a boolean specifying if the plugin should call `ensureIndex` for each
+ - `autoIndex` - a boolean specifying if the plugin should call `ensureIndexes` for each
     model. Defaults to `true`. Typically set to `false` in production environments.
  - `models` - an object where each key is the exposed model name and each value is the
     path (relative to the current working directory) of where to find the model on disk.
@@ -370,7 +370,7 @@ Returns a MongoDB friendly fields object.
 ```js
 Kitten.fieldsAdapter('name email');
 
-// { name: true, 'email': true }
+// { name: true, email: true }
 ```
 
 #### `sortAdapter(sorts)`
