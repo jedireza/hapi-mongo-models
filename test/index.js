@@ -28,11 +28,12 @@ lab.experiment('Plugin', function () {
         server.connection({ port: 0 });
         server.register(ModelsPlugin, function (err) {
 
-            // Wait for the server to start,
-            // simulating the connect-on-after behavior
             server.start(function (err) {
+
                 Code.expect(err).to.be.an.object();
+
                 stub.BaseModel.connect = realConnect;
+
                 done();
             });
         });
@@ -55,6 +56,7 @@ lab.experiment('Plugin', function () {
             }
 
             server.start(function (err) {
+
                 Code.expect(server.plugins['hapi-mongo-models']).to.be.an.object();
                 Code.expect(server.plugins['hapi-mongo-models'].BaseModel).to.exist();
 
@@ -87,6 +89,7 @@ lab.experiment('Plugin', function () {
             }
 
             server.start(function (err) {
+
                 Code.expect(server.plugins['hapi-mongo-models']).to.be.an.object();
                 Code.expect(server.plugins['hapi-mongo-models'].Dummy).to.exist();
 
@@ -97,41 +100,6 @@ lab.experiment('Plugin', function () {
         });
     });
 
-    lab.test('it exposes required and relatively pathed models', function (done) {
-        var server = new Hapi.Server();
-        var Plugin = {
-            register: ModelsPlugin,
-            options: {
-                mongodb: Config.mongodb,
-                models: {
-                    DummyRelative: './test/fixtures/dummy-model',
-                    DummyRequire: require('./fixtures/dummy-model')
-                }
-            }
-        };
-
-        server.connection({ port: 0 });
-        server.register(Plugin, function (err) {
-            if (err) {
-                return done(err);
-            }
-
-            server.start(function (err) {
-                if (err) {
-                    return done(err);
-                }
-
-                Code.expect(server.plugins['hapi-mongo-models']).to.be.an.object();
-
-                Code.expect(server.plugins['hapi-mongo-models'].DummyRelative).to.exist();
-                Code.expect(server.plugins['hapi-mongo-models'].DummyRequire).to.exist();
-
-                server.plugins['hapi-mongo-models'].BaseModel.disconnect();
-
-                done();
-            });
-        });
-    });
 
     lab.test('it successfuly connects to the db and exposes defined models and skips indexing', function (done) {
 
@@ -155,6 +123,7 @@ lab.experiment('Plugin', function () {
             }
 
             server.start(function (err) {
+
                 Code.expect(server.plugins['hapi-mongo-models']).to.be.an.object();
                 Code.expect(server.plugins['hapi-mongo-models'].Dummy).to.exist();
 
@@ -165,7 +134,8 @@ lab.experiment('Plugin', function () {
         });
     });
 
-    lab.test('it allows models to be added dynamically during registration', function (done) {
+
+    lab.test('it allows models to be added dynamically specifically during another plugin\'s registration', function (done) {
 
         var server = new Hapi.Server();
         var hapiMongoModelsPlugin = {
@@ -175,11 +145,7 @@ lab.experiment('Plugin', function () {
                 autoIndex: false
             }
         };
-
-        var dummyPlugin = {
-            register: require('./fixtures/dummy-plugin')
-        };
-
+        var dummyPlugin = require('./fixtures/dummy-plugin');
         var plugins = [hapiMongoModelsPlugin, dummyPlugin];
 
         server.connection({ port: 0 });
@@ -190,6 +156,7 @@ lab.experiment('Plugin', function () {
             }
 
             server.start(function (err) {
+
                 Code.expect(server.plugins['hapi-mongo-models']).to.be.an.object();
                 Code.expect(server.plugins['hapi-mongo-models'].Dummy).to.exist();
 

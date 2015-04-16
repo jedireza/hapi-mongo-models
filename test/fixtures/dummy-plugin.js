@@ -1,8 +1,15 @@
+var Dummy = require('./dummy-model');
+
+
 exports.register = function (server, options, next) {
+
     var addModel = server.plugins['hapi-mongo-models'].addModel;
-    addModel('Dummy', require('./dummy-model'));
+
+    addModel('Dummy', Dummy);
+
     next();
 };
+
 
 exports.register.attributes = {
     name: 'dummy',
