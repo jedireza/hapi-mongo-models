@@ -133,7 +133,38 @@ The options passed to the plugin is an object where:
  - `autoIndex` - a boolean specifying if the plugin should call `ensureIndex` for each
     model. Defaults to `true`. Typically set to `false` in production environments.
  - `models` - an object where each key is the exposed model name and each value is the
-    path (relative to the current working directory) of where to find the model on disk.
+    path (relative to the current working directory or absolute) of where to
+    find the model on disk.
+
+### Dependable
+
+You can depend on `hapi-mongo-models` inside other plugins. This allows you to
+add models dynamically and know that they'll be registered before we connect to
+MongoDB.
+
+For example, in a plugin you author:
+
+```js
+var DynamoKitty = require('./models/dynamo-kitty');
+
+exports.register = function (server, options, next) {
+
+    var addModel = server.plugins['hapi-mongo-models'].addModel;
+    addModel('DynamoKitty', DynamoKitty);
+    next();
+};
+
+exports.register.attributes = {
+    name: 'dynamo',
+    version: '1.0.0',
+    dependencies: ['hapi-mongo-models']
+};
+```
+
+The `addModel` method is a function with the signature `function (key, model)`
+where:
+  - `key` - is a string representing the name that will be exported.
+  - `model` - is a model class created by using `BaseModel.extend(...)`.
 
 ### Example
 
@@ -183,7 +214,7 @@ exports.register.attributes = {
 ```
 
 
-## API
+## Model API
 
 ### Constructor
 

@@ -22,6 +22,7 @@ exports.register = function (server, options, next) {
     server.expose('addModel', function (key, model) {
 
         models[key] = model;
+        server.expose(key, models[key]);
     });
 
     server.after(function (server, next) {
