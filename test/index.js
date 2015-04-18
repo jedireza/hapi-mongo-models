@@ -17,7 +17,7 @@ var ModelsPlugin = Proxyquire('..', {
 
 lab.experiment('Plugin', function () {
 
-    lab.test('it returns and error when the db connection fails', function (done) {
+    lab.test('it returns an error when the db connection fails', function (done) {
 
         var realConnect = stub.BaseModel.connect;
         stub.BaseModel.connect = function (config, callback) {
@@ -26,8 +26,14 @@ lab.experiment('Plugin', function () {
         };
 
         var server = new Hapi.Server();
+
+        var Plugin = {
+            register: ModelsPlugin,
+            options: Config
+        };
+
         server.connection({ port: 0 });
-        server.register(ModelsPlugin, function (err) {
+        server.register(Plugin, function (err) {
 
             server.start(function (err) {
 

@@ -11,28 +11,39 @@ exports.register = function (server, options, next) {
     var mongodb = options.mongodb;
     var autoIndex = options.hasOwnProperty('autoIndex') ? options.autoIndex : true;
 
-    function getModelPath(modelPath, modelName) {
+    var getModelPath = function (modelPath) {
 
-        Hoek.assert(typeof modelPath === 'string', 'Model path for', modelName, 'must be a string');
+        Hoek.assert(typeof modelPath === 'string', 'Model path must be a string');
 
         if (!Path.isAbsolute(modelPath)) {
             modelPath = Path.join(process.cwd(), modelPath);
         }
+
         return modelPath;
-    }
+    };
+
+    var requireModel = function (modelPath) {
+        var model;
+
+        if (typeof modelPath === 'string') {
+            model = require(getModelPath(modelPath));
+        } else {
+            model = modelPath;
+        }
+
+        return model;
+    };
+
+    var addModel = function (modelName, modelPath) {
+
+        models[modelName] = requireModel(modelPath);
+    };
 
     Object.keys(models).forEach(function (modelName) {
-        models[modelName] = require(getModelPath(models[modelName]));
+        addModel(modelName, models[modelName]);
     });
 
-    server.expose('addModel', function (modelName, modelPath) {
-
-        Hoek.assert(!models[modelName], 'Model', modelName, 'has already been set');
-
-        models[modelName] = require(getModelPath(modelPath, modelName));
-
-        server.expose(modelName, models[modelName]);
-    });
+    server.expose('addModel', addModel);
 
     server.after(function (server, done) {
 
@@ -48,6 +59,8 @@ exports.register = function (server, options, next) {
                 if (autoIndex) {
                     models[modelName].ensureIndexes();
                 }
+
+                server.expose(modelName, models[modelName]);
             });
 
             server.expose('BaseModel', BaseModel);
