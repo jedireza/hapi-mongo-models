@@ -1,51 +1,58 @@
 var Path = require('path');
+var Hoek = require('hoek');
 var BaseModel = require('./lib/base-model');
 
 
 exports.register = function (server, options, next) {
 
+    Hoek.assert(options.mongodb, 'mongodb property is required');
+
     var models = options.models || {};
     var mongodb = options.mongodb;
     var autoIndex = options.hasOwnProperty('autoIndex') ? options.autoIndex : true;
 
-    Object.keys(models).forEach(function (key) {
+    function getModelPath(modelPath, modelName) {
 
-        var modelPath = models[key];
+        Hoek.assert(typeof modelPath === 'string', 'Model path for', modelName, 'must be a string');
 
         if (!Path.isAbsolute(modelPath)) {
             modelPath = Path.join(process.cwd(), modelPath);
         }
+        return modelPath;
+    }
 
-        models[key] = require(modelPath);
+    Object.keys(models).forEach(function (modelName) {
+        models[modelName] = require(getModelPath(models[modelName]));
     });
 
-    server.expose('addModel', function (key, model) {
+    server.expose('addModel', function (modelName, modelPath) {
 
-        models[key] = model;
-        server.expose(key, models[key]);
+        Hoek.assert(!models[modelName], 'Model', modelName, 'has already been set');
+
+        models[modelName] = require(getModelPath(modelPath, modelName));
+
+        server.expose(modelName, models[modelName]);
     });
 
-    server.after(function (server, next) {
+    server.after(function (server, done) {
 
         BaseModel.connect(mongodb, function (err, db) {
 
             if (err) {
                 server.log('Error connecting to MongoDB via BaseModel.');
-                return next(err);
+                return done(err);
             }
 
-            Object.keys(models).forEach(function (key) {
+            Object.keys(models).forEach(function (modelName) {
 
                 if (autoIndex) {
-                    models[key].ensureIndexes();
+                    models[modelName].ensureIndexes();
                 }
-
-                server.expose(key, models[key]);
             });
 
             server.expose('BaseModel', BaseModel);
 
-            next();
+            done();
         });
     });
 
