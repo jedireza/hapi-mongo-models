@@ -1,3 +1,4 @@
+var Path = require('path');
 var Lab = require('lab');
 var Code = require('code');
 var Hapi = require('hapi');
@@ -77,6 +78,39 @@ lab.experiment('Plugin', function () {
                 mongodb: Config.mongodb,
                 models: {
                     Dummy: './test/fixtures/dummy-model'
+                }
+            }
+        };
+
+        server.connection({ port: 0 });
+        server.register(Plugin, function (err) {
+
+            if (err) {
+                return done(err);
+            }
+
+            server.start(function (err) {
+
+                Code.expect(server.plugins['hapi-mongo-models']).to.be.an.object();
+                Code.expect(server.plugins['hapi-mongo-models'].Dummy).to.exist();
+
+                server.plugins['hapi-mongo-models'].BaseModel.disconnect();
+
+                done();
+            });
+        });
+    });
+
+
+    lab.test('it successfuly connects to the db and exposes defined models (with absolute paths)', function (done) {
+
+        var server = new Hapi.Server();
+        var Plugin = {
+            register: ModelsPlugin,
+            options: {
+                mongodb: Config.mongodb,
+                models: {
+                    Dummy: Path.join(__dirname, 'fixtures/dummy-model')
                 }
             }
         };

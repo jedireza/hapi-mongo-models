@@ -10,12 +10,19 @@ exports.register = function (server, options, next) {
 
     Object.keys(models).forEach(function (key) {
 
-        models[key] = require(Path.join(process.cwd(), models[key]));
+        var modelPath = models[key];
+
+        if (!Path.isAbsolute(modelPath)) {
+            modelPath = Path.join(process.cwd(), modelPath);
+        }
+
+        models[key] = require(modelPath);
     });
 
     server.expose('addModel', function (key, model) {
 
         models[key] = model;
+        server.expose(key, models[key]);
     });
 
     server.after(function (server, next) {
