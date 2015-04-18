@@ -1,6 +1,7 @@
 var Path = require('path');
 var Hoek = require('hoek');
 var BaseModel = require('./lib/base-model');
+var isAbsolute = require('absolute');
 
 
 exports.register = function (server, options, next) {
@@ -15,7 +16,7 @@ exports.register = function (server, options, next) {
 
         Hoek.assert(typeof modelPath === 'string', 'Model path must be a string');
 
-        if (!Path.isAbsolute(modelPath)) {
+        if (!isAbsolute(modelPath)) {
             modelPath = Path.join(process.cwd(), modelPath);
         }
 
