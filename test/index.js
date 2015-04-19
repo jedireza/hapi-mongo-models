@@ -4,6 +4,7 @@ var Code = require('code');
 var Hapi = require('hapi');
 var Proxyquire = require('proxyquire');
 var Config = require('./config');
+var DummyPlugin = require('./fixtures/dummy-plugin');
 
 
 var lab = exports.lab = Lab.script();
@@ -26,7 +27,6 @@ lab.experiment('Plugin', function () {
         };
 
         var server = new Hapi.Server();
-
         var Plugin = {
             register: ModelsPlugin,
             options: Config
@@ -35,14 +35,11 @@ lab.experiment('Plugin', function () {
         server.connection({ port: 0 });
         server.register(Plugin, function (err) {
 
-            server.start(function (err) {
+            Code.expect(err).to.be.an.object();
 
-                Code.expect(err).to.be.an.object();
+            stub.BaseModel.connect = realConnect;
 
-                stub.BaseModel.connect = realConnect;
-
-                done();
-            });
+            done();
         });
     });
 
@@ -62,15 +59,12 @@ lab.experiment('Plugin', function () {
                 return done(err);
             }
 
-            server.start(function (err) {
+            Code.expect(server.plugins['hapi-mongo-models']).to.be.an.object();
+            Code.expect(server.plugins['hapi-mongo-models'].BaseModel).to.exist();
 
-                Code.expect(server.plugins['hapi-mongo-models']).to.be.an.object();
-                Code.expect(server.plugins['hapi-mongo-models'].BaseModel).to.exist();
+            server.plugins['hapi-mongo-models'].BaseModel.disconnect();
 
-                server.plugins['hapi-mongo-models'].BaseModel.disconnect();
-
-                done();
-            });
+            done();
         });
     });
 
@@ -95,15 +89,12 @@ lab.experiment('Plugin', function () {
                 return done(err);
             }
 
-            server.start(function (err) {
+            Code.expect(server.plugins['hapi-mongo-models']).to.be.an.object();
+            Code.expect(server.plugins['hapi-mongo-models'].Dummy).to.exist();
 
-                Code.expect(server.plugins['hapi-mongo-models']).to.be.an.object();
-                Code.expect(server.plugins['hapi-mongo-models'].Dummy).to.exist();
+            server.plugins['hapi-mongo-models'].BaseModel.disconnect();
 
-                server.plugins['hapi-mongo-models'].BaseModel.disconnect();
-
-                done();
-            });
+            done();
         });
     });
 
@@ -128,15 +119,12 @@ lab.experiment('Plugin', function () {
                 return done(err);
             }
 
-            server.start(function (err) {
+            Code.expect(server.plugins['hapi-mongo-models']).to.be.an.object();
+            Code.expect(server.plugins['hapi-mongo-models'].Dummy).to.exist();
 
-                Code.expect(server.plugins['hapi-mongo-models']).to.be.an.object();
-                Code.expect(server.plugins['hapi-mongo-models'].Dummy).to.exist();
+            server.plugins['hapi-mongo-models'].BaseModel.disconnect();
 
-                server.plugins['hapi-mongo-models'].BaseModel.disconnect();
-
-                done();
-            });
+            done();
         });
     });
 
@@ -164,6 +152,10 @@ lab.experiment('Plugin', function () {
 
             server.start(function (err) {
 
+                if (err) {
+                    return done(err);
+                }
+
                 Code.expect(server.plugins['hapi-mongo-models']).to.be.an.object();
                 Code.expect(server.plugins['hapi-mongo-models'].Dummy).to.exist();
 
@@ -181,12 +173,10 @@ lab.experiment('Plugin', function () {
         var hapiMongoModelsPlugin = {
             register: ModelsPlugin,
             options: {
-                mongodb: Config.mongodb,
-                autoIndex: false
+                mongodb: Config.mongodb
             }
         };
-        var dummyPlugin = require('./fixtures/dummy-plugin');
-        var plugins = [hapiMongoModelsPlugin, dummyPlugin];
+        var plugins = [hapiMongoModelsPlugin, DummyPlugin];
 
         server.connection({ port: 0 });
         server.register(plugins, function (err) {

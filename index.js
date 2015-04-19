@@ -11,7 +11,7 @@ exports.register = function (server, options, next) {
 
     Hoek.assert(mongodb, 'mongodb option is required');
 
-    Object.keys(models).forEach(function modelsInit(key) {
+    Object.keys(models).forEach(function modelsRequireExpose(key) {
 
         var modelPath = models[key];
 
@@ -36,27 +36,27 @@ exports.register = function (server, options, next) {
 
     server.expose('BaseModel', BaseModel);
 
-    server.after(function serverAfter(server, done) {
+    BaseModel.connect(mongodb, function connectToMongo(err, db) {
 
-        BaseModel.connect(mongodb, function (err, db) {
+        if (err) {
+            server.log('Error connecting to MongoDB via BaseModel.');
+            return next(err);
+        }
 
-            if (err) {
-                server.log('Error connecting to MongoDB via BaseModel.');
-                return done(err);
-            }
-
-            if (autoIndex) {
-                Object.keys(models).forEach(function modelsEnsureIndexes(key) {
-
-                    models[key].ensureIndexes();
-                });
-            }
-
-            done();
-        });
+        next();
     });
 
-    next();
+    server.after(function serverAfter(server, done) {
+
+        if (autoIndex) {
+            Object.keys(models).forEach(function modelsEnsureIndexes(key) {
+
+                models[key].ensureIndexes();
+            });
+        }
+
+        done();
+    });
 };
 
 
