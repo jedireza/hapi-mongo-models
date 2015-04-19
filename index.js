@@ -15,11 +15,6 @@ exports.register = function (server, options, next) {
     var autoIndex = options.hasOwnProperty('autoIndex') ? options.autoIndex : true;
     var addModel = function (key, model) {
 
-        Hoek.assert(
-            model.prototype instanceof BaseModel.constructor,
-            'Model [' + key + '] must be extended from BaseModel.'
-        );
-
         models[key] = model;
         server.expose(key, model);
     };
