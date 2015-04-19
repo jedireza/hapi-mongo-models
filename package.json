@@ -37,7 +37,6 @@
     "mongodb": "^2.x.x"
   },
   "dependencies": {
-    "absolute": "0.0.1",
     "ampersand-class-extend": "^1.x.x",
     "async": "^0.9.x",
     "hoek": "^2.x.x",

@@ -1,52 +1,42 @@
 var Path = require('path');
 var Hoek = require('hoek');
 var BaseModel = require('./lib/base-model');
-var isAbsolute = require('absolute');
 
 
 exports.register = function (server, options, next) {
-
-    Hoek.assert(options.mongodb, 'mongodb property is required');
 
     var models = options.models || {};
     var mongodb = options.mongodb;
     var autoIndex = options.hasOwnProperty('autoIndex') ? options.autoIndex : true;
 
-    var getModelPath = function (modelPath) {
+    Hoek.assert(mongodb, 'mongodb option is required');
 
-        Hoek.assert(typeof modelPath === 'string', 'Model path must be a string');
+    Object.keys(models).forEach(function modelsInit(key) {
 
-        if (!isAbsolute(modelPath)) {
+        var modelPath = models[key];
+
+        if (modelPath !== Path.resolve(modelPath)) {
             modelPath = Path.join(process.cwd(), modelPath);
         }
 
-        return modelPath;
-    };
-
-    var requireModel = function (modelPath) {
-        var model;
-
-        if (typeof modelPath === 'string') {
-            model = require(getModelPath(modelPath));
-        } else {
-            model = modelPath;
-        }
-
-        return model;
-    };
-
-    var addModel = function (modelName, modelPath) {
-
-        models[modelName] = requireModel(modelPath);
-    };
-
-    Object.keys(models).forEach(function (modelName) {
-        addModel(modelName, models[modelName]);
+        models[key] = require(modelPath);
+        server.expose(key, models[key]);
     });
 
-    server.expose('addModel', addModel);
+    server.expose('addModel', function addModel(key, model) {
 
-    server.after(function (server, done) {
+        Hoek.assert(
+            model.prototype instanceof BaseModel.constructor,
+            'Model must be extended from BaseModel.'
+        );
+
+        models[key] = model;
+        server.expose(key, model);
+    });
+
+    server.expose('BaseModel', BaseModel);
+
+    server.after(function serverAfter(server, done) {
 
         BaseModel.connect(mongodb, function (err, db) {
 
@@ -55,16 +45,12 @@ exports.register = function (server, options, next) {
                 return done(err);
             }
 
-            Object.keys(models).forEach(function (modelName) {
+            if (autoIndex) {
+                Object.keys(models).forEach(function modelsEnsureIndexes(key) {
 
-                if (autoIndex) {
-                    models[modelName].ensureIndexes();
-                }
-
-                server.expose(modelName, models[modelName]);
-            });
-
-            server.expose('BaseModel', BaseModel);
+                    models[key].ensureIndexes();
+                });
+            }
 
             done();
         });
