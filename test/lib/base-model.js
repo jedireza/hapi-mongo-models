@@ -92,7 +92,7 @@ lab.experiment('BaseModel Validation', function () {
             name: Joi.string().required()
         });
 
-        var myModel = new SubModel({name: 'Stimpy'});
+        var myModel = new SubModel({ name: 'Stimpy' });
 
         Code.expect(myModel.validate()).to.be.an.object();
 
@@ -390,6 +390,7 @@ lab.experiment('BaseModel Paged Find', function () {
 
         var realCount = SubModel.count;
         SubModel.count = function (filter, callback) {
+
             callback(new Error('count failed'));
         };
 
