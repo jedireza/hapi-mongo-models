@@ -5,7 +5,8 @@
   "main": "index.js",
   "scripts": {
     "test": "./node_modules/lab/bin/lab -c -L",
-    "test-cover": "./node_modules/lab/bin/lab -c -r html -o ./test/artifacts/coverage.html && open ./test/artifacts/coverage.html"
+    "test-cover": "./node_modules/lab/bin/lab -c -r html -o ./test/artifacts/coverage.html && open ./test/artifacts/coverage.html",
+    "update": "david update"
   },
   "repository": {
     "type": "git",
@@ -28,6 +29,7 @@
   "homepage": "https://github.com/jedireza/hapi-mongo-models",
   "devDependencies": {
     "code": "^1.x.x",
+    "david": "^6.x.x",
     "hapi": "^8.x.x",
     "lab": "^5.x.x",
     "mongodb": "^2.x.x",
@@ -38,9 +40,9 @@
   },
   "dependencies": {
     "ampersand-class-extend": "^1.x.x",
-    "async": "^0.9.x",
+    "async": "^1.x.x",
     "hoek": "^2.x.x",
     "joi": "^6.x.x",
-    "object-assign": "^2.x.x"
+    "object-assign": "^3.x.x"
   }
 }
