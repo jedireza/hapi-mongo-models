@@ -25,12 +25,60 @@ for defining a model's data schema.
 It's just JavaScript.
 
 
+## Table of Contents
+
+- [Install](#install)
+- [Usage](#usage)
+    - [Creating models](#creating-models)
+    - [Server plugin](#server-plugin)
+        - [Register manually](#register-manually)
+        - [Register via manifest](#register-via-manifest)
+    - [Plugin options](#plugin-options)
+    - [Usage in other plugins](#usage-in-other-plugins)
+    - [Example](#example)
+- [Model API](#model-api)
+    - [Constructor](#constructor)
+        - [`extend(protoProps)`](#extendprotoprops)
+    - [Properties](#properties)
+        - [`_idClass`](#_idclass)
+        - [`_collection`](#_collection)
+        - [`schema`](#schema)
+        - [`ObjectId`](#objectid)
+    - [Methods](#methods)
+        - [`connect(config, callback)`](#connectconfig-callback)
+        - [`disconnect()`](#disconnect)
+        - [`ensureIndexes(callback)`](#ensureindexescallback)
+        - [`ensureIndex(fieldOrSpec, [options], callback)`](#ensureindexfieldorspec-options-callback)
+        - [`validate(input, callback)`](#validateinput-callback)
+        - [`validate(callback)`](#validatecallback)
+        - [`fieldsAdapter(fields)`](#fieldsadapterfields)
+        - [`sortAdapter(sorts)`](#sortadaptersorts)
+        - [`count(filter, [options], callback)`](#countfilter-options-callback)
+        - [`find(filter, [options], callback)`](#findfilter-options-callback)
+        - [`pagedFind(filter, fields, sort, limit, page, callback)`](#pagedfindfilter-fields-sort-limit-page-callback)
+        - [`findById(id, [options], callback)`](#findbyidid-options-callback)
+        - [`findByIdAndUpdate(id, update, [options], callback)`](#findbyidandupdateid-update-options-callback)
+        - [`findByIdAndDelete(id, callback)`](#findbyidanddeleteid-callback)
+        - [`findOne(filter, [options], callback)`](#findonefilter-options-callback)
+        - [`findOneAndUpdate(filter, [options], callback)`](#findoneandupdatefilter-options-callback)
+        - [`findOneAndDelete(filter, [options], callback)`](#findoneanddeletefilter-options-callback)
+        - [`insertOne(doc, [options], callback)`](#insertonedoc-options-callback)
+        - [`insertMany(docs, [options], callback)`](#insertmanydocs-options-callback)
+        - [`updateOne(filter, update, [options], callback)`](#updateonefilter-update-options-callback)
+        - [`updateMany(filter, update, [options], callback)`](#updatemanyfilter-update-options-callback)
+        - [`replaceOne(filter, doc, [options], callback)`](#replaceonefilter-doc-options-callback)
+        - [`deleteOne(filter, [options], callback)`](#deleteonefilter-options-callback)
+        - [`deleteMany(filter, [options], callback)`](#deletemanyfilter-options-callback)
+- [In the wild](#in-the-wild)
+- [Questions and contributing](#questions-and-contributing)
+- [License](#license)
+
+
 ## Install
 
 ```bash
 $ npm install hapi-mongo-models
 ```
-
 
 ## Usage
 
