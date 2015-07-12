@@ -153,26 +153,26 @@ lab.experiment('BaseModel Result Factory', function () {
 
     lab.test('it returns an array of instances for a `writeOpResult` object', function (done) {
 
-        var callback = function (err, results) {
+        var callback = function (err, docs) {
 
             Code.expect(err).to.not.exist();
-            Code.expect(results).to.be.an.array();
+            Code.expect(docs).to.be.an.array();
 
-            results.forEach(function (result) {
+            docs.forEach(function (result) {
 
                 Code.expect(result).to.be.an.instanceOf(SubModel);
             });
 
             done();
         };
-        var results = {
+        var docs = {
             ops: [
                 { name: 'Ren' },
                 { name: 'Stimpy' }
             ]
         };
 
-        SubModel.resultFactory(callback, undefined, results);
+        SubModel.resultFactory(callback, undefined, docs);
     });
 
 
@@ -274,10 +274,10 @@ lab.experiment('BaseModel Indexes', function () {
 
         SubModel.ensureIndexes();
 
-        SubModel.ensureIndexes(function (err, results) {
+        SubModel.ensureIndexes(function (err, docs) {
 
             Code.expect(err).to.not.exist();
-            Code.expect(results).to.not.exist();
+            Code.expect(docs).to.not.exist();
 
             done();
         });
@@ -291,10 +291,10 @@ lab.experiment('BaseModel Indexes', function () {
             [{ bar: -1 }]
         ];
 
-        SubModel.ensureIndexes(function (err, results) {
+        SubModel.ensureIndexes(function (err, docs) {
 
             Code.expect(err).to.not.exist();
-            Code.expect(results).to.be.an.array();
+            Code.expect(docs).to.be.an.array();
 
             done();
         });
@@ -400,10 +400,10 @@ lab.experiment('BaseModel Paged Find', function () {
         var page = 1;
         var sort = { _id: -1 };
 
-        SubModel.pagedFind(filter, fields, sort, limit, page, function (err, results) {
+        SubModel.pagedFind(filter, fields, sort, limit, page, function (err, docs) {
 
             Code.expect(err).to.be.an.object();
-            Code.expect(results).to.not.exist();
+            Code.expect(docs).to.not.exist();
 
             SubModel.count = realCount;
 
@@ -433,10 +433,10 @@ lab.experiment('BaseModel Paged Find', function () {
             var page = 1;
             var sort = { _id: -1 };
 
-            SubModel.pagedFind(filter, fields, sort, limit, page, function (err, results) {
+            SubModel.pagedFind(filter, fields, sort, limit, page, function (err, docs) {
 
                 Code.expect(err).to.not.exist();
-                Code.expect(results).to.be.an.object();
+                Code.expect(docs).to.be.an.object();
 
                 done();
             });
@@ -465,10 +465,10 @@ lab.experiment('BaseModel Paged Find', function () {
             var page = 1;
             var sort = { _id: -1 };
 
-            SubModel.pagedFind(filter, fields, sort, limit, page, function (err, results) {
+            SubModel.pagedFind(filter, fields, sort, limit, page, function (err, docs) {
 
                 Code.expect(err).to.not.exist();
-                Code.expect(results).to.be.an.object();
+                Code.expect(docs).to.be.an.object();
 
                 done();
             });
@@ -497,10 +497,10 @@ lab.experiment('BaseModel Paged Find', function () {
             var page = 1;
             var sort = { _id: -1 };
 
-            SubModel.pagedFind(filter, fields, sort, limit, page, function (err, results) {
+            SubModel.pagedFind(filter, fields, sort, limit, page, function (err, docs) {
 
                 Code.expect(err).to.not.exist();
-                Code.expect(results).to.be.an.object();
+                Code.expect(docs).to.be.an.object();
 
                 done();
             });
@@ -556,11 +556,11 @@ lab.experiment('BaseModel Proxied Methods', function () {
             { name: 'Yak' }
         ];
 
-        SubModel.insertMany(testDocs, function (err, results) {
+        SubModel.insertMany(testDocs, function (err, docs) {
 
             Code.expect(err).to.not.exist();
-            Code.expect(results).to.be.an.array();
-            Code.expect(results.length).to.equal(3);
+            Code.expect(docs).to.be.an.array();
+            Code.expect(docs.length).to.equal(3);
 
             done(err);
         });
@@ -571,10 +571,10 @@ lab.experiment('BaseModel Proxied Methods', function () {
 
         var testDoc = { name: 'Horse' };
 
-        SubModel.insertOne(testDoc, function (err, results) {
+        SubModel.insertOne(testDoc, function (err, docs) {
 
             Code.expect(err).to.not.exist();
-            Code.expect(results).to.be.an.array();
+            Code.expect(docs).to.be.an.array();
 
             done(err);
         });
@@ -588,11 +588,11 @@ lab.experiment('BaseModel Proxied Methods', function () {
             { name: 'Space' }
         ];
 
-        SubModel.insertMany(testDocs, function (err, results) {
+        SubModel.insertMany(testDocs, function (err, docs) {
 
             Code.expect(err).to.not.exist();
-            Code.expect(results).to.be.an.array();
-            Code.expect(results.length).to.equal(2);
+            Code.expect(docs).to.be.an.array();
+            Code.expect(docs.length).to.equal(2);
 
             done(err);
         });
@@ -845,12 +845,12 @@ lab.experiment('BaseModel Proxied Methods', function () {
             }
         }, function (err, results) {
 
-            SubModel.find({}, function (err, results) {
+            SubModel.find({}, function (err, docs) {
 
                 Code.expect(err).to.not.exist();
-                Code.expect(results).to.be.an.array();
+                Code.expect(docs).to.be.an.array();
 
-                results.forEach(function (result) {
+                docs.forEach(function (result) {
 
                     Code.expect(result).to.be.an.instanceOf(SubModel);
                 });
