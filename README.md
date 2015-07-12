@@ -80,6 +80,7 @@ It's just JavaScript.
 $ npm install hapi-mongo-models
 ```
 
+
 ## Usage
 
 ### Creating models
