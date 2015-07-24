@@ -830,6 +830,33 @@ lab.experiment('BaseModel Proxied Methods', function () {
     });
 
 
+    lab.test('it returns distinct results from a collection', function (done) {
+
+        Async.auto({
+            setup: function (cb) {
+
+                var testDocs = [
+                    { name: 'Ren', group: 'Friend' },
+                    { name: 'Stimpy', group: 'Friend' },
+                    { name: 'Yak', group: 'Foe' }
+                ];
+
+                SubModel.insertMany(testDocs, cb);
+            }
+        }, function (err, results) {
+
+            SubModel.distinct('group', function (err, values) {
+
+                Code.expect(err).to.not.exist();
+                Code.expect(values).to.be.an.array();
+                Code.expect(values.length).to.equal(2);
+
+                done();
+            });
+        });
+    });
+
+
     lab.test('it returns a result array', function (done) {
 
         Async.auto({
