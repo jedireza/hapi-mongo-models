@@ -4,8 +4,8 @@
   "description": "MongoDB object models for hapi applications",
   "main": "index.js",
   "scripts": {
-    "test": "./node_modules/lab/bin/lab -c -L",
-    "test-cover": "./node_modules/lab/bin/lab -c -r html -o ./test/artifacts/coverage.html && open ./test/artifacts/coverage.html",
+    "test": "lab -c -L",
+    "test-cover": "lab -c -r html -o ./test/artifacts/coverage.html && opn ./test/artifacts/coverage.html",
     "update": "david update"
   },
   "repository": {
@@ -33,6 +33,7 @@
     "hapi": "^8.x.x",
     "lab": "^5.x.x",
     "mongodb": "^2.x.x",
+    "opn-cli": "^1.x.x",
     "proxyquire": "^1.x.x"
   },
   "peerDependencies": {
