@@ -367,7 +367,7 @@ Closes the current db connection.
 
 Loops over the static `indexes` array property of a model class calling
 `ensureIndex`. The server plugin calls this method for each model after the
-server has started.
+server has started.  The callback is optional for this method.
 
 Indexes are defined as a static property on your models like:
 
