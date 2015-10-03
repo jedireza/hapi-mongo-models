@@ -54,7 +54,7 @@ It's just JavaScript.
         - [`fieldsAdapter(fields)`](#fieldsadapterfields)
         - [`sortAdapter(sorts)`](#sortadaptersorts)
         - [`count(filter, [options], callback)`](#countfilter-options-callback)
-        - [`distinct(field, [filter], callback)`](#disintctfield-filter-callback)
+        - [`distinct(field, [filter], callback)`](#distinctfield-filter-callback)
         - [`find(filter, [options], callback)`](#findfilter-options-callback)
         - [`pagedFind(filter, fields, sort, limit, page, callback)`](#pagedfindfilter-fields-sort-limit-page-callback)
         - [`findById(id, [options], callback)`](#findbyidid-options-callback)
@@ -484,7 +484,7 @@ Counts documents matching a `filter` where:
     - `count` - if the query succeeded, a number indicating how many documents
       matched the `filter`.
 
-#### `disintct(field, [filter], callback)`
+#### `distinct(field, [filter], callback)`
 
 Finds the distinct values for the specified `field`.
 
