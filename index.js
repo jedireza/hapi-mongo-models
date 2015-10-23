@@ -34,7 +34,7 @@ exports.register = function (server, options, next) {
 
     server.expose('BaseModel', BaseModel);
 
-    server.after(function (serverObj, done) {
+    server.ext('onPreStart', function (serverObj, done) {
 
         if (autoIndex) {
             Object.keys(models).forEach(function (key) {
