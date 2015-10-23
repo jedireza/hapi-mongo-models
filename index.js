@@ -39,7 +39,9 @@ exports.register = function (server, options, next) {
         if (autoIndex) {
             Object.keys(models).forEach(function (key) {
 
-                models[key].ensureIndexes();
+                if (models[key].indexes) {
+                    models[key].createIndexes(models[key].indexes);
+                }
             });
         }
 

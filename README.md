@@ -47,8 +47,7 @@ It's just JavaScript.
     - [Methods](#methods)
         - [`connect(config, callback)`](#connectconfig-callback)
         - [`disconnect()`](#disconnect)
-        - [`ensureIndexes(callback)`](#ensureindexescallback)
-        - [`ensureIndex(fieldOrSpec, [options], callback)`](#ensureindexfieldorspec-options-callback)
+        - [`createIndexes(indexSpecs, [callback])`](#createindexesindexspecs-callback)
         - [`validate(input, callback)`](#validateinput-callback)
         - [`validate(callback)`](#validatecallback)
         - [`fieldsAdapter(fields)`](#fieldsadapterfields)
@@ -180,7 +179,7 @@ The options passed to the plugin is an object where:
  - `mongodb` - is an object where:
    - `url` - a string representing the connection url for MongoDB.
    - `options` - an optional object passed to MongoDB's native connect function.
- - `autoIndex` - a boolean specifying if the plugin should call `ensureIndexes`
+ - `autoIndex` - a boolean specifying if the plugin should call `createIndexes`
    for each model. Defaults to `true`. Typically set to `false` in production
    environments.
  - `models` - an object where each key is the exposed model name and each value
@@ -363,34 +362,29 @@ Connects to a MongoDB server where:
 
 Closes the current db connection.
 
-#### `ensureIndexes(callback)`
+#### `createIndexes(indexSpecs, [callback])`
 
-Loops over the static `indexes` array property of a model class calling
-`ensureIndex`. The server plugin calls this method for each model after the
-server has started.
+Creates multiple indexes in the collection where:
+
+ - `indexSpecs` - an array of objects containing index specifications to be
+   created.
+ - `callback` - the callback method using the signature `function (err, result)`
+    where:
+    - `err` - if creating the indexes failed, the error reason, otherwise `null`.
+    - `result` - if creating the indexes succeeded, the result object.
 
 Indexes are defined as a static property on your models like:
 
 ```js
 Kitten.indexes = [
-    [{ name: 1 }],
-    [{ email: 1 }]
+    { key: { name: 1 } },
+    { key: { email: -1 } }
 ];
 ```
 
-#### `ensureIndex(fieldOrSpec, [options], callback)`
+For details on all the options an index specification may have see:
 
-Ensures that an index exists, if it does not it creates it where:
-
- - `fieldOrSpec` - an object contains the field and value pairs where the field
-   is the index key and the value describes the type of index for that field. For
-   an ascending index on a field, specify a value of `1`; for descending index,
-   specify a value of `-1`.
- - `options` - an options object passed to MongoDB's native `ensureIndex` method.
- - `callback` - the callback method using the signature `function (err, result)`
-    where:
-    - `err` - if creating the index failed, the error reason, otherwise `null`.
-    - `result` - if creating the index succeeded, the result object.
+https://docs.mongodb.org/manual/reference/command/createIndexes/
 
 #### `validate(input, callback)`
 

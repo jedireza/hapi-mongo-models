@@ -258,58 +258,15 @@ lab.experiment('BaseModel Indexes', function () {
     });
 
 
-    lab.test('it successfully creates an index', function (done) {
+    lab.test('it successfully creates indexes', function (done) {
 
-        SubModel.ensureIndex({ username: 1 }, {}, function (err, indexName) {
+        SubModel.createIndexes([{ key: { username: 1 } }], function (err, results) {
 
             Code.expect(err).to.not.exist();
-            Code.expect(indexName).to.be.a.string();
+            Code.expect(results).to.be.an.object();
 
             done();
         });
-    });
-
-
-    lab.test('it exists early when there are no indexes', function (done) {
-
-        SubModel.ensureIndexes();
-
-        SubModel.ensureIndexes(function (err, docs) {
-
-            Code.expect(err).to.not.exist();
-            Code.expect(docs).to.not.exist();
-
-            done();
-        });
-    });
-
-
-    lab.test('it successfully ensures indexes', function (done) {
-
-        SubModel.indexes = [
-            [{ foo: 1 }],
-            [{ bar: -1 }]
-        ];
-
-        SubModel.ensureIndexes(function (err, docs) {
-
-            Code.expect(err).to.not.exist();
-            Code.expect(docs).to.be.an.array();
-
-            done();
-        });
-    });
-
-
-    lab.test('it successfully ensures indexes without a callback', function (done) {
-
-        SubModel.indexes = [
-            [{ foo: 1 }],
-            [{ bar: -1 }]
-        ];
-
-        Code.expect(SubModel.ensureIndexes()).to.equal(undefined);
-        done();
     });
 });
 
