@@ -180,8 +180,8 @@ The options passed to the plugin is an object where:
    - `url` - a string representing the connection url for MongoDB.
    - `options` - an optional object passed to MongoDB's native connect function.
  - `autoIndex` - a boolean specifying if the plugin should call `createIndexes`
-   for each model. Defaults to `true`. Typically set to `false` in production
-   environments.
+   for each model that has a static `indexes` property. Defaults to `true`.
+   Typically set to `false` in production environments.
  - `models` - an object where each key is the exposed model name and each value
    is the path (relative to the current working directory or absolute) of where
    to find the model on disk.
@@ -363,6 +363,9 @@ Connects to a MongoDB server where:
 Closes the current db connection.
 
 #### `createIndexes(indexSpecs, [callback])`
+
+Note: `createIndexes` is called during plugin registration for each model when
+the `autoIndex` option is set to `true`.
 
 Creates multiple indexes in the collection where:
 
