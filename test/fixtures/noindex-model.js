@@ -3,7 +3,7 @@ var ObjectAssign = require('object-assign');
 var BaseModel = require('../../lib/base-model');
 
 
-var Dummy = BaseModel.extend({
+var NoIndex = BaseModel.extend({
     constructor: function (attrs) {
 
         ObjectAssign(this, attrs);
@@ -11,19 +11,13 @@ var Dummy = BaseModel.extend({
 });
 
 
-Dummy._collection = 'dummies';
+NoIndex._collection = 'noindexes';
 
 
-Dummy.schema = Joi.object().keys({
+NoIndex.schema = Joi.object().keys({
     name: Joi.string().required(),
     hasHat: Joi.boolean()
 });
 
 
-Dummy.indexes = [
-    { key: { name: 1 } },
-    { key: { hasHat: -1 } }
-];
-
-
-module.exports = Dummy;
+module.exports = NoIndex;

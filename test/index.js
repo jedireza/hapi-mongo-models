@@ -129,7 +129,7 @@ lab.experiment('Plugin', function () {
     });
 
 
-    lab.test('it successfuly connects to the db and exposes defined models and skips indexing', function (done) {
+    lab.test('it successfuly connects to the db, exposes defined models and skips indexing', function (done) {
 
         var server = new Hapi.Server();
         var Plugin = {
@@ -158,6 +158,43 @@ lab.experiment('Plugin', function () {
 
                 Code.expect(server.plugins['hapi-mongo-models']).to.be.an.object();
                 Code.expect(server.plugins['hapi-mongo-models'].Dummy).to.exist();
+
+                server.plugins['hapi-mongo-models'].BaseModel.disconnect();
+
+                done();
+            });
+        });
+    });
+
+
+    lab.test('it skips calling `createIndexes` when none are defined', function (done) {
+
+        var server = new Hapi.Server();
+        var Plugin = {
+            register: ModelsPlugin,
+            options: {
+                mongodb: Config.mongodb,
+                models: {
+                    NoIndex: './test/fixtures/noindex-model'
+                }
+            }
+        };
+
+        server.connection({ port: 0 });
+        server.register(Plugin, function (err) {
+
+            if (err) {
+                return done(err);
+            }
+
+            server.start(function (err) {
+
+                if (err) {
+                    return done(err);
+                }
+
+                Code.expect(server.plugins['hapi-mongo-models']).to.be.an.object();
+                Code.expect(server.plugins['hapi-mongo-models'].NoIndex).to.exist();
 
                 server.plugins['hapi-mongo-models'].BaseModel.disconnect();
 
