@@ -1,9 +1,11 @@
-var Joi = require('joi');
-var ObjectAssign = require('object-assign');
-var BaseModel = require('../../lib/base-model');
+'use strict';
+
+const Joi = require('joi');
+const ObjectAssign = require('object-assign');
+const BaseModel = require('../../lib/base-model');
 
 
-var Dummy = BaseModel.extend({
+const Dummy = BaseModel.extend({
     constructor: function (attrs) {
 
         ObjectAssign(this, attrs);

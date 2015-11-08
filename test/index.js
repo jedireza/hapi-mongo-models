@@ -1,39 +1,41 @@
-var Path = require('path');
-var Lab = require('lab');
-var Code = require('code');
-var Hapi = require('hapi');
-var Proxyquire = require('proxyquire');
-var Config = require('./config');
-var DummyPlugin = require('./fixtures/dummy-plugin');
+'use strict';
+
+const Path = require('path');
+const Lab = require('lab');
+const Code = require('code');
+const Hapi = require('hapi');
+const Proxyquire = require('proxyquire');
+const Config = require('./config');
+const DummyPlugin = require('./fixtures/dummy-plugin');
 
 
-var lab = exports.lab = Lab.script();
-var stub = {
+const lab = exports.lab = Lab.script();
+const stub = {
     BaseModel: {}
 };
-var ModelsPlugin = Proxyquire('..', {
+const ModelsPlugin = Proxyquire('..', {
     './lib/base-model': stub.BaseModel
 });
 
 
-lab.experiment('Plugin', function () {
+lab.experiment('Plugin', () => {
 
-    lab.test('it returns an error when the db connection fails', function (done) {
+    lab.test('it returns an error when the db connection fails', (done) => {
 
-        var realConnect = stub.BaseModel.connect;
+        const realConnect = stub.BaseModel.connect;
         stub.BaseModel.connect = function (config, callback) {
 
             callback(Error('connect failed'));
         };
 
-        var server = new Hapi.Server();
-        var Plugin = {
+        const server = new Hapi.Server();
+        const Plugin = {
             register: ModelsPlugin,
             options: Config
         };
 
         server.connection({ port: 0 });
-        server.register(Plugin, function (err) {
+        server.register(Plugin, (err) => {
 
             Code.expect(err).to.be.an.object();
 
@@ -44,16 +46,16 @@ lab.experiment('Plugin', function () {
     });
 
 
-    lab.test('it successfuly connects to the db and exposes the base model', function (done) {
+    lab.test('it successfuly connects to the db and exposes the base model', (done) => {
 
-        var server = new Hapi.Server();
-        var Plugin = {
+        const server = new Hapi.Server();
+        const Plugin = {
             register: ModelsPlugin,
             options: Config
         };
 
         server.connection({ port: 0 });
-        server.register(Plugin, function (err) {
+        server.register(Plugin, (err) => {
 
             if (err) {
                 return done(err);
@@ -69,10 +71,10 @@ lab.experiment('Plugin', function () {
     });
 
 
-    lab.test('it successfuly connects to the db and exposes defined models', function (done) {
+    lab.test('it successfuly connects to the db and exposes defined models', (done) => {
 
-        var server = new Hapi.Server();
-        var Plugin = {
+        const server = new Hapi.Server();
+        const Plugin = {
             register: ModelsPlugin,
             options: {
                 mongodb: Config.mongodb,
@@ -83,7 +85,7 @@ lab.experiment('Plugin', function () {
         };
 
         server.connection({ port: 0 });
-        server.register(Plugin, function (err) {
+        server.register(Plugin, (err) => {
 
             if (err) {
                 return done(err);
@@ -99,10 +101,10 @@ lab.experiment('Plugin', function () {
     });
 
 
-    lab.test('it successfuly connects to the db and exposes defined models (with absolute paths)', function (done) {
+    lab.test('it successfuly connects to the db and exposes defined models (with absolute paths)', (done) => {
 
-        var server = new Hapi.Server();
-        var Plugin = {
+        const server = new Hapi.Server();
+        const Plugin = {
             register: ModelsPlugin,
             options: {
                 mongodb: Config.mongodb,
@@ -113,7 +115,7 @@ lab.experiment('Plugin', function () {
         };
 
         server.connection({ port: 0 });
-        server.register(Plugin, function (err) {
+        server.register(Plugin, (err) => {
 
             if (err) {
                 return done(err);
@@ -129,10 +131,10 @@ lab.experiment('Plugin', function () {
     });
 
 
-    lab.test('it successfuly connects to the db, exposes defined models and skips indexing', function (done) {
+    lab.test('it successfuly connects to the db, exposes defined models and skips indexing', (done) => {
 
-        var server = new Hapi.Server();
-        var Plugin = {
+        const server = new Hapi.Server();
+        const Plugin = {
             register: ModelsPlugin,
             options: {
                 mongodb: Config.mongodb,
@@ -144,13 +146,13 @@ lab.experiment('Plugin', function () {
         };
 
         server.connection({ port: 0 });
-        server.register(Plugin, function (err) {
+        server.register(Plugin, (err) => {
 
             if (err) {
                 return done(err);
             }
 
-            server.start(function (err) {
+            server.start((err) => {
 
                 if (err) {
                     return done(err);
@@ -167,10 +169,10 @@ lab.experiment('Plugin', function () {
     });
 
 
-    lab.test('it skips calling `createIndexes` when none are defined', function (done) {
+    lab.test('it skips calling `createIndexes` when none are defined', (done) => {
 
-        var server = new Hapi.Server();
-        var Plugin = {
+        const server = new Hapi.Server();
+        const Plugin = {
             register: ModelsPlugin,
             options: {
                 mongodb: Config.mongodb,
@@ -181,13 +183,13 @@ lab.experiment('Plugin', function () {
         };
 
         server.connection({ port: 0 });
-        server.register(Plugin, function (err) {
+        server.register(Plugin, (err) => {
 
             if (err) {
                 return done(err);
             }
 
-            server.start(function (err) {
+            server.start((err) => {
 
                 if (err) {
                     return done(err);
@@ -204,25 +206,25 @@ lab.experiment('Plugin', function () {
     });
 
 
-    lab.test('it allows models to be added dynamically specifically during another plugin\'s registration', function (done) {
+    lab.test('it allows models to be added dynamically specifically during another plugin\'s registration', (done) => {
 
-        var server = new Hapi.Server();
-        var hapiMongoModelsPlugin = {
+        const server = new Hapi.Server();
+        const hapiMongoModelsPlugin = {
             register: ModelsPlugin,
             options: {
                 mongodb: Config.mongodb
             }
         };
-        var plugins = [hapiMongoModelsPlugin, DummyPlugin];
+        const plugins = [hapiMongoModelsPlugin, DummyPlugin];
 
         server.connection({ port: 0 });
-        server.register(plugins, function (err) {
+        server.register(plugins, (err) => {
 
             if (err) {
                 return done(err);
             }
 
-            server.start(function (err) {
+            server.start((err) => {
 
                 Code.expect(server.plugins['hapi-mongo-models']).to.be.an.object();
                 Code.expect(server.plugins['hapi-mongo-models'].Dummy).to.exist();
