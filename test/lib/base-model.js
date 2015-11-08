@@ -1,26 +1,28 @@
-var Async = require('async');
-var Joi = require('joi');
-var Lab = require('lab');
-var Code = require('code');
-var ObjectAssign = require('object-assign');
-var Proxyquire = require('proxyquire');
-var Config = require('../config');
+'use strict';
+
+const Async = require('async');
+const Joi = require('joi');
+const Lab = require('lab');
+const Code = require('code');
+const ObjectAssign = require('object-assign');
+const Proxyquire = require('proxyquire');
+const Config = require('../config');
 
 
-var lab = exports.lab = Lab.script();
-var stub = {
+const lab = exports.lab = Lab.script();
+const stub = {
     mongodb: {}
 };
-var BaseModel = Proxyquire('../../lib/base-model', {
+const BaseModel = Proxyquire('../../lib/base-model', {
     mongodb: stub.mongodb
 });
 
 
-lab.experiment('BaseModel DB Connection', function () {
+lab.experiment('BaseModel DB Connection', () => {
 
-    lab.test('it connects and disconnects the database', function (done) {
+    lab.test('it connects and disconnects the database', (done) => {
 
-        BaseModel.connect(Config.mongodb, function (err, db) {
+        BaseModel.connect(Config.mongodb, (err, db) => {
 
             Code.expect(err).to.not.exist();
             Code.expect(db).to.be.an.object();
@@ -34,9 +36,9 @@ lab.experiment('BaseModel DB Connection', function () {
     });
 
 
-    lab.test('it returns an error when the db connection fails', function (done) {
+    lab.test('it returns an error when the db connection fails', (done) => {
 
-        var realMongoClient = stub.mongodb.MongoClient;
+        const realMongoClient = stub.mongodb.MongoClient;
 
         stub.mongodb.MongoClient = {
             connect: function (url, settings, callback) {
@@ -45,7 +47,7 @@ lab.experiment('BaseModel DB Connection', function () {
             }
         };
 
-        BaseModel.connect(Config.mongodb, function (err, db) {
+        BaseModel.connect(Config.mongodb, (err, db) => {
 
             Code.expect(err).to.be.an.object();
             Code.expect(db).to.not.exist();
@@ -58,11 +60,11 @@ lab.experiment('BaseModel DB Connection', function () {
 });
 
 
-lab.experiment('BaseModel Validation', function () {
+lab.experiment('BaseModel Validation', () => {
 
-    lab.test('it returns the Joi validation results of a SubClass', function (done) {
+    lab.test('it returns the Joi validation results of a SubClass', (done) => {
 
-        var SubModel = BaseModel.extend({
+        const SubModel = BaseModel.extend({
             constructor: function (attrs) {
 
                 ObjectAssign(this, attrs);
@@ -79,9 +81,9 @@ lab.experiment('BaseModel Validation', function () {
     });
 
 
-    lab.test('it returns the Joi validation results of a SubClass instance', function (done) {
+    lab.test('it returns the Joi validation results of a SubClass instance', (done) => {
 
-        var SubModel = BaseModel.extend({
+        const SubModel = BaseModel.extend({
             constructor: function (attrs) {
 
                 ObjectAssign(this, attrs);
@@ -92,7 +94,7 @@ lab.experiment('BaseModel Validation', function () {
             name: Joi.string().required()
         });
 
-        var myModel = new SubModel({ name: 'Stimpy' });
+        const myModel = new SubModel({ name: 'Stimpy' });
 
         Code.expect(myModel.validate()).to.be.an.object();
 
@@ -101,12 +103,12 @@ lab.experiment('BaseModel Validation', function () {
 });
 
 
-lab.experiment('BaseModel Result Factory', function () {
+lab.experiment('BaseModel Result Factory', () => {
 
-    var SubModel;
+    let SubModel;
 
 
-    lab.before(function (done) {
+    lab.before((done) => {
 
         SubModel = BaseModel.extend({
             constructor: function (attrs) {
@@ -119,9 +121,9 @@ lab.experiment('BaseModel Result Factory', function () {
     });
 
 
-    lab.test('it returns early when an error is present', function (done) {
+    lab.test('it returns early when an error is present', (done) => {
 
-        var callback = function (err, result) {
+        const callback = function (err, result) {
 
             Code.expect(err).to.be.an.object();
             Code.expect(result).to.not.exist();
@@ -133,16 +135,16 @@ lab.experiment('BaseModel Result Factory', function () {
     });
 
 
-    lab.test('it returns an instance for a single document result', function (done) {
+    lab.test('it returns an instance for a single document result', (done) => {
 
-        var callback = function (err, result) {
+        const callback = function (err, result) {
 
             Code.expect(err).to.not.exist();
             Code.expect(result).to.be.an.instanceOf(SubModel);
 
             done();
         };
-        var document = {
+        const document = {
             _id: '54321',
             name: 'Stimpy'
         };
@@ -151,21 +153,21 @@ lab.experiment('BaseModel Result Factory', function () {
     });
 
 
-    lab.test('it returns an array of instances for a `writeOpResult` object', function (done) {
+    lab.test('it returns an array of instances for a `writeOpResult` object', (done) => {
 
-        var callback = function (err, docs) {
+        const callback = function (err, docs) {
 
             Code.expect(err).to.not.exist();
             Code.expect(docs).to.be.an.array();
 
-            docs.forEach(function (result) {
+            docs.forEach((result) => {
 
                 Code.expect(result).to.be.an.instanceOf(SubModel);
             });
 
             done();
         };
-        var docs = {
+        const docs = {
             ops: [
                 { name: 'Ren' },
                 { name: 'Stimpy' }
@@ -176,9 +178,9 @@ lab.experiment('BaseModel Result Factory', function () {
     });
 
 
-    lab.test('it returns a instance for a `findOpResult` object', function (done) {
+    lab.test('it returns a instance for a `findOpResult` object', (done) => {
 
-        var callback = function (err, result) {
+        const callback = function (err, result) {
 
             Code.expect(err).to.not.exist();
             Code.expect(result).to.be.an.object();
@@ -186,7 +188,7 @@ lab.experiment('BaseModel Result Factory', function () {
 
             done();
         };
-        var result = {
+        const result = {
             value: { _id: 'ren', name: 'Ren' }
         };
 
@@ -194,16 +196,16 @@ lab.experiment('BaseModel Result Factory', function () {
     });
 
 
-    lab.test('it returns undefined for a `findOpResult` object that missed', function (done) {
+    lab.test('it returns undefined for a `findOpResult` object that missed', (done) => {
 
-        var callback = function (err, result) {
+        const callback = function (err, result) {
 
             Code.expect(err).to.not.exist();
             Code.expect(result).to.not.exist();
 
             done();
         };
-        var result = {
+        const result = {
             value: null
         };
 
@@ -211,9 +213,9 @@ lab.experiment('BaseModel Result Factory', function () {
     });
 
 
-    lab.test('it does not convert an object into an instance without an _id property', function (done) {
+    lab.test('it does not convert an object into an instance without an _id property', (done) => {
 
-        var callback = function (err, result) {
+        const callback = function (err, result) {
 
             Code.expect(err).to.not.exist();
             Code.expect(result).to.be.an.object();
@@ -221,19 +223,19 @@ lab.experiment('BaseModel Result Factory', function () {
 
             done();
         };
-        var document = { name: 'Ren' };
+        const document = { name: 'Ren' };
 
         SubModel.resultFactory(callback, undefined, document);
     });
 });
 
 
-lab.experiment('BaseModel Indexes', function () {
+lab.experiment('BaseModel Indexes', () => {
 
-    var SubModel;
+    let SubModel;
 
 
-    lab.before(function (done) {
+    lab.before((done) => {
 
         SubModel = BaseModel.extend({
             constructor: function (attrs) {
@@ -244,23 +246,23 @@ lab.experiment('BaseModel Indexes', function () {
 
         SubModel._collection = 'submodels';
 
-        BaseModel.connect(Config.mongodb, function (err, db) {
+        BaseModel.connect(Config.mongodb, (err, db) => {
 
             done(err);
         });
     });
 
 
-    lab.after(function (done) {
+    lab.after((done) => {
 
         BaseModel.disconnect();
         done();
     });
 
 
-    lab.test('it successfully creates indexes', function (done) {
+    lab.test('it successfully creates indexes', (done) => {
 
-        SubModel.createIndexes([{ key: { username: 1 } }], function (err, results) {
+        SubModel.createIndexes([{ key: { username: 1 } }], (err, results) => {
 
             Code.expect(err).to.not.exist();
             Code.expect(results).to.be.an.object();
@@ -271,32 +273,32 @@ lab.experiment('BaseModel Indexes', function () {
 });
 
 
-lab.experiment('BaseModel Helpers', function () {
+lab.experiment('BaseModel Helpers', () => {
 
-    lab.test('it returns expected results for the fields adapter', function (done) {
+    lab.test('it returns expected results for the fields adapter', (done) => {
 
-        var fieldsDoc = BaseModel.fieldsAdapter('one two three');
+        const fieldsDoc = BaseModel.fieldsAdapter('one two three');
         Code.expect(fieldsDoc).to.be.an.object();
         Code.expect(fieldsDoc.one).to.equal(true);
         Code.expect(fieldsDoc.two).to.equal(true);
         Code.expect(fieldsDoc.three).to.equal(true);
 
-        var fieldsDoc2 = BaseModel.fieldsAdapter('');
+        const fieldsDoc2 = BaseModel.fieldsAdapter('');
         Code.expect(Object.keys(fieldsDoc2)).to.have.length(0);
 
         done();
     });
 
 
-    lab.test('it returns expected results for the sort adapter', function (done) {
+    lab.test('it returns expected results for the sort adapter', (done) => {
 
-        var sortDoc = BaseModel.sortAdapter('one -two three');
+        const sortDoc = BaseModel.sortAdapter('one -two three');
         Code.expect(sortDoc).to.be.an.object();
         Code.expect(sortDoc.one).to.equal(1);
         Code.expect(sortDoc.two).to.equal(-1);
         Code.expect(sortDoc.three).to.equal(1);
 
-        var sortDoc2 = BaseModel.sortAdapter('');
+        const sortDoc2 = BaseModel.sortAdapter('');
         Code.expect(Object.keys(sortDoc2)).to.have.length(0);
 
         done();
@@ -304,12 +306,12 @@ lab.experiment('BaseModel Helpers', function () {
 });
 
 
-lab.experiment('BaseModel Paged Find', function () {
+lab.experiment('BaseModel Paged Find', () => {
 
-    var SubModel;
+    let SubModel;
 
 
-    lab.beforeEach(function (done) {
+    lab.beforeEach((done) => {
 
         SubModel = BaseModel.extend({
             constructor: function (attrs) {
@@ -320,44 +322,44 @@ lab.experiment('BaseModel Paged Find', function () {
 
         SubModel._collection = 'submodels';
 
-        BaseModel.connect(Config.mongodb, function (err, db) {
+        BaseModel.connect(Config.mongodb, (err, db) => {
 
             done(err);
         });
     });
 
 
-    lab.after(function (done) {
+    lab.after((done) => {
 
         BaseModel.disconnect();
         done();
     });
 
 
-    lab.afterEach(function (done) {
+    lab.afterEach((done) => {
 
-        SubModel.deleteMany({}, function (err, result) {
+        SubModel.deleteMany({}, (err, result) => {
 
             done();
         });
     });
 
 
-    lab.test('it returns early when an error occurs', function (done) {
+    lab.test('it returns early when an error occurs', (done) => {
 
-        var realCount = SubModel.count;
+        const realCount = SubModel.count;
         SubModel.count = function (filter, callback) {
 
             callback(new Error('count failed'));
         };
 
-        var filter = {};
-        var fields;
-        var limit = 10;
-        var page = 1;
-        var sort = { _id: -1 };
+        const filter = {};
+        let fields;
+        const limit = 10;
+        const page = 1;
+        const sort = { _id: -1 };
 
-        SubModel.pagedFind(filter, fields, sort, limit, page, function (err, docs) {
+        SubModel.pagedFind(filter, fields, sort, limit, page, (err, docs) => {
 
             Code.expect(err).to.be.an.object();
             Code.expect(docs).to.not.exist();
@@ -369,12 +371,12 @@ lab.experiment('BaseModel Paged Find', function () {
     });
 
 
-    lab.test('it returns paged results', function (done) {
+    lab.test('it returns paged results', (done) => {
 
         Async.auto({
             setup: function (cb) {
 
-                var testDocs = [
+                const testDocs = [
                     { name: 'Ren' },
                     { name: 'Stimpy' },
                     { name: 'Yak' }
@@ -382,15 +384,15 @@ lab.experiment('BaseModel Paged Find', function () {
 
                 SubModel.insertMany(testDocs, cb);
             }
-        }, function (err, results) {
+        }, (err, results) => {
 
-            var filter = {};
-            var fields;
-            var limit = 10;
-            var page = 1;
-            var sort = { _id: -1 };
+            const filter = {};
+            let fields;
+            const limit = 10;
+            const page = 1;
+            const sort = { _id: -1 };
 
-            SubModel.pagedFind(filter, fields, sort, limit, page, function (err, docs) {
+            SubModel.pagedFind(filter, fields, sort, limit, page, (err, docs) => {
 
                 Code.expect(err).to.not.exist();
                 Code.expect(docs).to.be.an.object();
@@ -401,12 +403,12 @@ lab.experiment('BaseModel Paged Find', function () {
     });
 
 
-    lab.test('it returns paged results where end item is less than total', function (done) {
+    lab.test('it returns paged results where end item is less than total', (done) => {
 
         Async.auto({
             setup: function (cb) {
 
-                var testDocs = [
+                const testDocs = [
                     { name: 'Ren' },
                     { name: 'Stimpy' },
                     { name: 'Yak' }
@@ -414,15 +416,15 @@ lab.experiment('BaseModel Paged Find', function () {
 
                 SubModel.insertMany(testDocs, cb);
             }
-        }, function (err, results) {
+        }, (err, results) => {
 
-            var filter = {};
-            var fields;
-            var limit = 2;
-            var page = 1;
-            var sort = { _id: -1 };
+            const filter = {};
+            let fields;
+            const limit = 2;
+            const page = 1;
+            const sort = { _id: -1 };
 
-            SubModel.pagedFind(filter, fields, sort, limit, page, function (err, docs) {
+            SubModel.pagedFind(filter, fields, sort, limit, page, (err, docs) => {
 
                 Code.expect(err).to.not.exist();
                 Code.expect(docs).to.be.an.object();
@@ -433,12 +435,12 @@ lab.experiment('BaseModel Paged Find', function () {
     });
 
 
-    lab.test('it returns paged results where begin item is less than total', function (done) {
+    lab.test('it returns paged results where begin item is less than total', (done) => {
 
         Async.auto({
             setup: function (cb) {
 
-                var testDocs = [
+                const testDocs = [
                     { name: 'Ren' },
                     { name: 'Stimpy' },
                     { name: 'Yak' }
@@ -446,15 +448,15 @@ lab.experiment('BaseModel Paged Find', function () {
 
                 SubModel.insertMany(testDocs, cb);
             }
-        }, function (err, results) {
+        }, (err, results) => {
 
-            var filter = { 'role.special': { $exists: true } };
-            var fields;
-            var limit = 2;
-            var page = 1;
-            var sort = { _id: -1 };
+            const filter = { 'role.special': { $exists: true } };
+            let fields;
+            const limit = 2;
+            const page = 1;
+            const sort = { _id: -1 };
 
-            SubModel.pagedFind(filter, fields, sort, limit, page, function (err, docs) {
+            SubModel.pagedFind(filter, fields, sort, limit, page, (err, docs) => {
 
                 Code.expect(err).to.not.exist();
                 Code.expect(docs).to.be.an.object();
@@ -466,12 +468,12 @@ lab.experiment('BaseModel Paged Find', function () {
 });
 
 
-lab.experiment('BaseModel Proxied Methods', function () {
+lab.experiment('BaseModel Proxied Methods', () => {
 
-    var SubModel;
+    let SubModel;
 
 
-    lab.before(function (done) {
+    lab.before((done) => {
 
         SubModel = BaseModel.extend({
             constructor: function (attrs) {
@@ -482,38 +484,38 @@ lab.experiment('BaseModel Proxied Methods', function () {
 
         SubModel._collection = 'submodels';
 
-        BaseModel.connect(Config.mongodb, function (err, db) {
+        BaseModel.connect(Config.mongodb, (err, db) => {
 
             done(err);
         });
     });
 
 
-    lab.after(function (done) {
+    lab.after((done) => {
 
         BaseModel.disconnect();
         done();
     });
 
 
-    lab.afterEach(function (done) {
+    lab.afterEach((done) => {
 
-        SubModel.deleteMany({}, function (err, result) {
+        SubModel.deleteMany({}, (err, result) => {
 
             done();
         });
     });
 
 
-    lab.test('it inserts data and returns the results', function (done) {
+    lab.test('it inserts data and returns the results', (done) => {
 
-        var testDocs = [
+        const testDocs = [
             { name: 'Ren' },
             { name: 'Stimpy' },
             { name: 'Yak' }
         ];
 
-        SubModel.insertMany(testDocs, function (err, docs) {
+        SubModel.insertMany(testDocs, (err, docs) => {
 
             Code.expect(err).to.not.exist();
             Code.expect(docs).to.be.an.array();
@@ -524,11 +526,11 @@ lab.experiment('BaseModel Proxied Methods', function () {
     });
 
 
-    lab.test('it inserts one document and returns the result', function (done) {
+    lab.test('it inserts one document and returns the result', (done) => {
 
-        var testDoc = { name: 'Horse' };
+        const testDoc = { name: 'Horse' };
 
-        SubModel.insertOne(testDoc, function (err, docs) {
+        SubModel.insertOne(testDoc, (err, docs) => {
 
             Code.expect(err).to.not.exist();
             Code.expect(docs).to.be.an.array();
@@ -538,14 +540,14 @@ lab.experiment('BaseModel Proxied Methods', function () {
     });
 
 
-    lab.test('it inserts many documents and returns the results', function (done) {
+    lab.test('it inserts many documents and returns the results', (done) => {
 
-        var testDocs = [
+        const testDocs = [
             { name: 'Toast' },
             { name: 'Space' }
         ];
 
-        SubModel.insertMany(testDocs, function (err, docs) {
+        SubModel.insertMany(testDocs, (err, docs) => {
 
             Code.expect(err).to.not.exist();
             Code.expect(docs).to.be.an.array();
@@ -556,12 +558,12 @@ lab.experiment('BaseModel Proxied Methods', function () {
     });
 
 
-    lab.test('it updates a document and returns the results', function (done) {
+    lab.test('it updates a document and returns the results', (done) => {
 
         Async.auto({
             setup: function (cb) {
 
-                var testDocs = [
+                const testDocs = [
                     { name: 'Ren' },
                     { name: 'Stimpy' },
                     { name: 'Yak' }
@@ -569,16 +571,16 @@ lab.experiment('BaseModel Proxied Methods', function () {
 
                 SubModel.insertMany(testDocs, cb);
             }
-        }, function (err, results) {
+        }, (err, results) => {
 
-            var filter = {
+            const filter = {
                 _id: results.setup[0]._id
             };
-            var update = {
+            const update = {
                 $set: { isCool: true }
             };
 
-            SubModel.updateOne(filter, update, function (err, count) {
+            SubModel.updateOne(filter, update, (err, count) => {
 
                 Code.expect(err).to.not.exist();
                 Code.expect(count).to.be.a.number();
@@ -590,12 +592,12 @@ lab.experiment('BaseModel Proxied Methods', function () {
     });
 
 
-    lab.test('it updates a document and returns the results (with options)', function (done) {
+    lab.test('it updates a document and returns the results (with options)', (done) => {
 
         Async.auto({
             setup: function (cb) {
 
-                var testDocs = [
+                const testDocs = [
                     { name: 'Ren' },
                     { name: 'Stimpy' },
                     { name: 'Yak' }
@@ -603,17 +605,17 @@ lab.experiment('BaseModel Proxied Methods', function () {
 
                 SubModel.insertMany(testDocs, cb);
             }
-        }, function (err, results) {
+        }, (err, results) => {
 
-            var filter = {
+            const filter = {
                 _id: results.setup[0]._id
             };
-            var update = {
+            const update = {
                 $set: { isCool: true }
             };
-            var options = { upsert: true };
+            const options = { upsert: true };
 
-            SubModel.updateOne(filter, update, options, function (err, count) {
+            SubModel.updateOne(filter, update, options, (err, count) => {
 
                 Code.expect(err).to.not.exist();
                 Code.expect(count).to.be.a.number();
@@ -625,18 +627,18 @@ lab.experiment('BaseModel Proxied Methods', function () {
     });
 
 
-    lab.test('it returns an error when updateOne fails', function (done) {
+    lab.test('it returns an error when updateOne fails', (done) => {
 
         Async.auto({
             setup: function (cb) {
 
-                var testDoc = { name: 'Ren' };
+                const testDoc = { name: 'Ren' };
 
                 SubModel.insertOne(testDoc, cb);
             }
-        }, function (err, results) {
+        }, (err, results) => {
 
-            var realCollection = BaseModel.db.collection;
+            const realCollection = BaseModel.db.collection;
             BaseModel.db.collection = function () {
 
                 return {
@@ -647,10 +649,10 @@ lab.experiment('BaseModel Proxied Methods', function () {
                 };
             };
 
-            var filter = {};
-            var update = { $set: { isCool: true } };
+            const filter = {};
+            const update = { $set: { isCool: true } };
 
-            SubModel.updateOne(filter, update, function (err, count) {
+            SubModel.updateOne(filter, update, (err, count) => {
 
                 Code.expect(err).to.exist();
                 Code.expect(count).to.not.exist();
@@ -662,12 +664,12 @@ lab.experiment('BaseModel Proxied Methods', function () {
     });
 
 
-    lab.test('it updates many documents and returns the results', function (done) {
+    lab.test('it updates many documents and returns the results', (done) => {
 
         Async.auto({
             setup: function (cb) {
 
-                var testDocs = [
+                const testDocs = [
                     { name: 'Ren' },
                     { name: 'Stimpy' },
                     { name: 'Yak' }
@@ -675,12 +677,12 @@ lab.experiment('BaseModel Proxied Methods', function () {
 
                 SubModel.insertMany(testDocs, cb);
             }
-        }, function (err, results) {
+        }, (err, results) => {
 
-            var filter = {};
-            var update = { $set: { isCool: true } };
+            const filter = {};
+            const update = { $set: { isCool: true } };
 
-            SubModel.updateMany(filter, update, function (err, count) {
+            SubModel.updateMany(filter, update, (err, count) => {
 
                 Code.expect(err).to.not.exist();
                 Code.expect(count).to.be.a.number();
@@ -692,12 +694,12 @@ lab.experiment('BaseModel Proxied Methods', function () {
     });
 
 
-    lab.test('it updates many documents and returns the results (with options)', function (done) {
+    lab.test('it updates many documents and returns the results (with options)', (done) => {
 
         Async.auto({
             setup: function (cb) {
 
-                var testDocs = [
+                const testDocs = [
                     { name: 'Ren' },
                     { name: 'Stimpy' },
                     { name: 'Yak' }
@@ -705,13 +707,13 @@ lab.experiment('BaseModel Proxied Methods', function () {
 
                 SubModel.insertMany(testDocs, cb);
             }
-        }, function (err, results) {
+        }, (err, results) => {
 
-            var filter = {};
-            var update = { $set: { isCool: true } };
-            var options = { upsert: true };
+            const filter = {};
+            const update = { $set: { isCool: true } };
+            const options = { upsert: true };
 
-            SubModel.updateMany(filter, update, options, function (err, count) {
+            SubModel.updateMany(filter, update, options, (err, count) => {
 
                 Code.expect(err).to.not.exist();
                 Code.expect(count).to.be.a.number();
@@ -723,18 +725,18 @@ lab.experiment('BaseModel Proxied Methods', function () {
     });
 
 
-    lab.test('it returns an error when updateMany fails', function (done) {
+    lab.test('it returns an error when updateMany fails', (done) => {
 
         Async.auto({
             setup: function (cb) {
 
-                var testDoc = { name: 'Ren' };
+                const testDoc = { name: 'Ren' };
 
                 SubModel.insertOne(testDoc, cb);
             }
-        }, function (err, results) {
+        }, (err, results) => {
 
-            var realCollection = BaseModel.db.collection;
+            const realCollection = BaseModel.db.collection;
             BaseModel.db.collection = function () {
 
                 return {
@@ -745,10 +747,10 @@ lab.experiment('BaseModel Proxied Methods', function () {
                 };
             };
 
-            var filter = {};
-            var update = { $set: { isCool: true } };
+            const filter = {};
+            const update = { $set: { isCool: true } };
 
-            SubModel.updateMany(filter, update, function (err, count) {
+            SubModel.updateMany(filter, update, (err, count) => {
 
                 Code.expect(err).to.exist();
                 Code.expect(count).to.not.exist();
@@ -760,12 +762,12 @@ lab.experiment('BaseModel Proxied Methods', function () {
     });
 
 
-    lab.test('it returns a collection count', function (done) {
+    lab.test('it returns a collection count', (done) => {
 
         Async.auto({
             setup: function (cb) {
 
-                var testDocs = [
+                const testDocs = [
                     { name: 'Ren' },
                     { name: 'Stimpy' },
                     { name: 'Yak' }
@@ -773,9 +775,9 @@ lab.experiment('BaseModel Proxied Methods', function () {
 
                 SubModel.insertMany(testDocs, cb);
             }
-        }, function (err, results) {
+        }, (err, results) => {
 
-            SubModel.count({}, function (err, result) {
+            SubModel.count({}, (err, result) => {
 
                 Code.expect(err).to.not.exist();
                 Code.expect(result).to.be.a.number();
@@ -787,12 +789,12 @@ lab.experiment('BaseModel Proxied Methods', function () {
     });
 
 
-    lab.test('it returns distinct results from a collection', function (done) {
+    lab.test('it returns distinct results from a collection', (done) => {
 
         Async.auto({
             setup: function (cb) {
 
-                var testDocs = [
+                const testDocs = [
                     { name: 'Ren', group: 'Friend' },
                     { name: 'Stimpy', group: 'Friend' },
                     { name: 'Yak', group: 'Foe' }
@@ -800,9 +802,9 @@ lab.experiment('BaseModel Proxied Methods', function () {
 
                 SubModel.insertMany(testDocs, cb);
             }
-        }, function (err, results) {
+        }, (err, results) => {
 
-            SubModel.distinct('group', function (err, values) {
+            SubModel.distinct('group', (err, values) => {
 
                 Code.expect(err).to.not.exist();
                 Code.expect(values).to.be.an.array();
@@ -814,12 +816,12 @@ lab.experiment('BaseModel Proxied Methods', function () {
     });
 
 
-    lab.test('it returns a result array', function (done) {
+    lab.test('it returns a result array', (done) => {
 
         Async.auto({
             setup: function (cb) {
 
-                var testDocs = [
+                const testDocs = [
                     { name: 'Ren' },
                     { name: 'Stimpy' },
                     { name: 'Yak' }
@@ -827,14 +829,14 @@ lab.experiment('BaseModel Proxied Methods', function () {
 
                 SubModel.insertMany(testDocs, cb);
             }
-        }, function (err, results) {
+        }, (err, results) => {
 
-            SubModel.find({}, function (err, docs) {
+            SubModel.find({}, (err, docs) => {
 
                 Code.expect(err).to.not.exist();
                 Code.expect(docs).to.be.an.array();
 
-                docs.forEach(function (result) {
+                docs.forEach((result) => {
 
                     Code.expect(result).to.be.an.instanceOf(SubModel);
                 });
@@ -845,18 +847,18 @@ lab.experiment('BaseModel Proxied Methods', function () {
     });
 
 
-    lab.test('it returns a single result', function (done) {
+    lab.test('it returns a single result', (done) => {
 
         Async.auto({
             setup: function (cb) {
 
-                var testDoc = { name: 'Ren' };
+                const testDoc = { name: 'Ren' };
 
                 SubModel.insertOne(testDoc, cb);
             }
-        }, function (err, results) {
+        }, (err, results) => {
 
-            SubModel.findOne({}, function (err, result) {
+            SubModel.findOne({}, (err, result) => {
 
                 Code.expect(err).to.not.exist();
                 Code.expect(result).to.be.an.object();
@@ -868,20 +870,20 @@ lab.experiment('BaseModel Proxied Methods', function () {
     });
 
 
-    lab.test('it returns a single result via id', function (done) {
+    lab.test('it returns a single result via id', (done) => {
 
         Async.auto({
             setup: function (cb) {
 
-                var testDoc = { name: 'Ren' };
+                const testDoc = { name: 'Ren' };
 
                 SubModel.insertOne(testDoc, cb);
             }
-        }, function (err, results) {
+        }, (err, results) => {
 
-            var id = results.setup[0]._id;
+            const id = results.setup[0]._id;
 
-            SubModel.findById(id, function (err, result) {
+            SubModel.findById(id, (err, result) => {
 
                 Code.expect(err).to.not.exist();
                 Code.expect(result).to.be.an.object();
@@ -893,9 +895,9 @@ lab.experiment('BaseModel Proxied Methods', function () {
     });
 
 
-    lab.test('it returns and error when id casting fails during findById', function (done) {
+    lab.test('it returns and error when id casting fails during findById', (done) => {
 
-        SubModel.findById('NOTVALIDOBJECTID', function (err, result) {
+        SubModel.findById('NOTVALIDOBJECTID', (err, result) => {
 
             Code.expect(err).to.exist();
             done();
@@ -903,21 +905,21 @@ lab.experiment('BaseModel Proxied Methods', function () {
     });
 
 
-    lab.test('it updates a single document via findByIdAndUpdate', function (done) {
+    lab.test('it updates a single document via findByIdAndUpdate', (done) => {
 
         Async.auto({
             setup: function (cb) {
 
-                var testDoc = { name: 'Ren' };
+                const testDoc = { name: 'Ren' };
 
                 SubModel.insertOne(testDoc, cb);
             }
-        }, function (err, results) {
+        }, (err, results) => {
 
-            var id = results.setup[0]._id;
-            var update = { name: 'New Name' };
+            const id = results.setup[0]._id;
+            const update = { name: 'New Name' };
 
-            SubModel.findByIdAndUpdate(id, update, function (err, result) {
+            SubModel.findByIdAndUpdate(id, update, (err, result) => {
 
                 Code.expect(err).to.not.exist();
                 Code.expect(result).to.be.an.object();
@@ -929,9 +931,9 @@ lab.experiment('BaseModel Proxied Methods', function () {
     });
 
 
-    lab.test('it returns an error when casting fails during findByIdAndUpdate', function (done) {
+    lab.test('it returns an error when casting fails during findByIdAndUpdate', (done) => {
 
-        SubModel.findByIdAndUpdate('NOTVALIDOBJECTID', {}, function (err, result) {
+        SubModel.findByIdAndUpdate('NOTVALIDOBJECTID', {}, (err, result) => {
 
             Code.expect(err).to.exist();
             done();
@@ -939,22 +941,22 @@ lab.experiment('BaseModel Proxied Methods', function () {
     });
 
 
-    lab.test('it updates a single document via id (with options)', function (done) {
+    lab.test('it updates a single document via id (with options)', (done) => {
 
         Async.auto({
             setup: function (cb) {
 
-                var testDoc = { name: 'Ren' };
+                const testDoc = { name: 'Ren' };
 
                 SubModel.insertOne(testDoc, cb);
             }
-        }, function (err, results) {
+        }, (err, results) => {
 
-            var id = results.setup[0]._id;
-            var update = { name: 'New Name' };
-            var options = { returnOriginal: false };
+            const id = results.setup[0]._id;
+            const update = { name: 'New Name' };
+            const options = { returnOriginal: false };
 
-            SubModel.findByIdAndUpdate(id, update, options, function (err, result) {
+            SubModel.findByIdAndUpdate(id, update, options, (err, result) => {
 
                 Code.expect(err).to.not.exist();
                 Code.expect(result).to.be.an.object();
@@ -966,21 +968,21 @@ lab.experiment('BaseModel Proxied Methods', function () {
     });
 
 
-    lab.test('it updates a single document via findOneAndUpdate', function (done) {
+    lab.test('it updates a single document via findOneAndUpdate', (done) => {
 
         Async.auto({
             setup: function (cb) {
 
-                var testDoc = { name: 'Ren' };
+                const testDoc = { name: 'Ren' };
 
                 SubModel.insertOne(testDoc, cb);
             }
-        }, function (err, results) {
+        }, (err, results) => {
 
-            var filter = { name: 'Ren' };
-            var update = { name: 'New Name' };
+            const filter = { name: 'Ren' };
+            const update = { name: 'New Name' };
 
-            SubModel.findOneAndUpdate(filter, update, function (err, result) {
+            SubModel.findOneAndUpdate(filter, update, (err, result) => {
 
                 Code.expect(err).to.not.exist();
                 Code.expect(result).to.be.an.object();
@@ -992,22 +994,22 @@ lab.experiment('BaseModel Proxied Methods', function () {
     });
 
 
-    lab.test('it updates a single document via findOneAndUpdate (with options)', function (done) {
+    lab.test('it updates a single document via findOneAndUpdate (with options)', (done) => {
 
         Async.auto({
             setup: function (cb) {
 
-                var testDoc = { name: 'Ren' };
+                const testDoc = { name: 'Ren' };
 
                 SubModel.insertOne(testDoc, cb);
             }
-        }, function (err, results) {
+        }, (err, results) => {
 
-            var filter = { name: 'Ren' };
-            var update = { name: 'New Name' };
-            var options = { returnOriginal: true };
+            const filter = { name: 'Ren' };
+            const update = { name: 'New Name' };
+            const options = { returnOriginal: true };
 
-            SubModel.findOneAndUpdate(filter, update, options, function (err, result) {
+            SubModel.findOneAndUpdate(filter, update, options, (err, result) => {
 
                 Code.expect(err).to.not.exist();
                 Code.expect(result).to.be.an.object();
@@ -1019,21 +1021,21 @@ lab.experiment('BaseModel Proxied Methods', function () {
     });
 
 
-    lab.test('it replaces a single document via findOneAndReplace', function (done) {
+    lab.test('it replaces a single document via findOneAndReplace', (done) => {
 
         Async.auto({
             setup: function (cb) {
 
-                var testDoc = { name: 'Ren' };
+                const testDoc = { name: 'Ren' };
 
                 SubModel.insertOne(testDoc, cb);
             }
-        }, function (err, results) {
+        }, (err, results) => {
 
-            var filter = { name: 'Ren' };
-            var doc = { isCool: true };
+            const filter = { name: 'Ren' };
+            const doc = { isCool: true };
 
-            SubModel.findOneAndReplace(filter, doc, function (err, result) {
+            SubModel.findOneAndReplace(filter, doc, (err, result) => {
 
                 Code.expect(err).to.not.exist();
                 Code.expect(result).to.be.an.object();
@@ -1045,22 +1047,22 @@ lab.experiment('BaseModel Proxied Methods', function () {
     });
 
 
-    lab.test('it replaces a single document via findOneAndReplace (with options)', function (done) {
+    lab.test('it replaces a single document via findOneAndReplace (with options)', (done) => {
 
         Async.auto({
             setup: function (cb) {
 
-                var testDoc = { name: 'Ren' };
+                const testDoc = { name: 'Ren' };
 
                 SubModel.insertOne(testDoc, cb);
             }
-        }, function (err, results) {
+        }, (err, results) => {
 
-            var filter = { name: 'Ren' };
-            var doc = { isCool: true };
-            var options = { returnOriginal: true };
+            const filter = { name: 'Ren' };
+            const doc = { isCool: true };
+            const options = { returnOriginal: true };
 
-            SubModel.findOneAndReplace(filter, doc, options, function (err, result) {
+            SubModel.findOneAndReplace(filter, doc, options, (err, result) => {
 
                 Code.expect(err).to.not.exist();
                 Code.expect(result).to.be.an.object();
@@ -1072,21 +1074,21 @@ lab.experiment('BaseModel Proxied Methods', function () {
     });
 
 
-    lab.test('it replaces one document and returns the result', function (done) {
+    lab.test('it replaces one document and returns the result', (done) => {
 
         Async.auto({
             setup: function (cb) {
 
-                var testDoc = { name: 'Ren' };
+                const testDoc = { name: 'Ren' };
 
                 SubModel.insertOne(testDoc, cb);
             }
-        }, function (err, results) {
+        }, (err, results) => {
 
-            var filter = { name: 'Ren' };
-            var doc = { isCool: true };
+            const filter = { name: 'Ren' };
+            const doc = { isCool: true };
 
-            SubModel.replaceOne(filter, doc, function (err, count) {
+            SubModel.replaceOne(filter, doc, (err, count) => {
 
                 Code.expect(err).to.not.exist();
                 Code.expect(count).to.be.a.number();
@@ -1098,22 +1100,22 @@ lab.experiment('BaseModel Proxied Methods', function () {
     });
 
 
-    lab.test('it replaces one document and returns the result (with options)', function (done) {
+    lab.test('it replaces one document and returns the result (with options)', (done) => {
 
         Async.auto({
             setup: function (cb) {
 
-                var testDoc = { name: 'Ren' };
+                const testDoc = { name: 'Ren' };
 
                 SubModel.insertOne(testDoc, cb);
             }
-        }, function (err, results) {
+        }, (err, results) => {
 
-            var filter = { name: 'Ren' };
-            var doc = { isCool: true };
-            var options = { upsert: true };
+            const filter = { name: 'Ren' };
+            const doc = { isCool: true };
+            const options = { upsert: true };
 
-            SubModel.replaceOne(filter, doc, options, function (err, count) {
+            SubModel.replaceOne(filter, doc, options, (err, count) => {
 
                 Code.expect(err).to.not.exist();
                 Code.expect(count).to.be.a.number();
@@ -1125,18 +1127,18 @@ lab.experiment('BaseModel Proxied Methods', function () {
     });
 
 
-    lab.test('it returns an error when replaceOne fails', function (done) {
+    lab.test('it returns an error when replaceOne fails', (done) => {
 
         Async.auto({
             setup: function (cb) {
 
-                var testDoc = { name: 'Ren' };
+                const testDoc = { name: 'Ren' };
 
                 SubModel.insertOne(testDoc, cb);
             }
-        }, function (err, results) {
+        }, (err, results) => {
 
-            var realCollection = BaseModel.db.collection;
+            const realCollection = BaseModel.db.collection;
             BaseModel.db.collection = function () {
 
                 return {
@@ -1147,10 +1149,10 @@ lab.experiment('BaseModel Proxied Methods', function () {
                 };
             };
 
-            var filter = { name: 'Ren' };
-            var doc = { isCool: true };
+            const filter = { name: 'Ren' };
+            const doc = { isCool: true };
 
-            SubModel.replaceOne(filter, doc, function (err, count) {
+            SubModel.replaceOne(filter, doc, (err, count) => {
 
                 Code.expect(err).to.exist();
                 Code.expect(count).to.not.exist();
@@ -1162,20 +1164,20 @@ lab.experiment('BaseModel Proxied Methods', function () {
     });
 
 
-    lab.test('it deletes a document via findOneAndDelete', function (done) {
+    lab.test('it deletes a document via findOneAndDelete', (done) => {
 
         Async.auto({
             setup: function (cb) {
 
-                var testDoc = { name: 'Ren' };
+                const testDoc = { name: 'Ren' };
 
                 SubModel.insertOne(testDoc, cb);
             }
-        }, function (err, results) {
+        }, (err, results) => {
 
-            var filter = { name: 'Ren' };
+            const filter = { name: 'Ren' };
 
-            SubModel.findOneAndDelete(filter, function (err, result) {
+            SubModel.findOneAndDelete(filter, (err, result) => {
 
                 Code.expect(err).to.not.exist();
                 Code.expect(result).to.be.an.object();
@@ -1187,20 +1189,20 @@ lab.experiment('BaseModel Proxied Methods', function () {
     });
 
 
-    lab.test('it deletes a document via findByIdAndDelete', function (done) {
+    lab.test('it deletes a document via findByIdAndDelete', (done) => {
 
         Async.auto({
             setup: function (cb) {
 
-                var testDoc = { name: 'Ren' };
+                const testDoc = { name: 'Ren' };
 
                 SubModel.insertOne(testDoc, cb);
             }
-        }, function (err, results) {
+        }, (err, results) => {
 
-            var id = results.setup[0]._id;
+            const id = results.setup[0]._id;
 
-            SubModel.findByIdAndDelete(id, function (err, result) {
+            SubModel.findByIdAndDelete(id, (err, result) => {
 
                 Code.expect(err).to.not.exist();
                 Code.expect(result).to.be.an.object();
@@ -1212,25 +1214,25 @@ lab.experiment('BaseModel Proxied Methods', function () {
     });
 
 
-    lab.test('it deletes a single document via findByIdAndDelete (with options)', function (done) {
+    lab.test('it deletes a single document via findByIdAndDelete (with options)', (done) => {
 
         Async.auto({
             setup: function (cb) {
 
-                var testDoc = { name: 'Ren' };
+                const testDoc = { name: 'Ren' };
 
                 SubModel.insertOne(testDoc, cb);
             }
-        }, function (err, results) {
+        }, (err, results) => {
 
-            var id = results.setup[0]._id;
-            var options = {
+            const id = results.setup[0]._id;
+            const options = {
                 projection: {
                     name: 1
                 }
             };
 
-            SubModel.findByIdAndDelete(id, options, function (err, result) {
+            SubModel.findByIdAndDelete(id, options, (err, result) => {
 
                 Code.expect(err).to.not.exist();
                 Code.expect(result).to.be.an.object();
@@ -1242,9 +1244,9 @@ lab.experiment('BaseModel Proxied Methods', function () {
     });
 
 
-    lab.test('it returns an error when id casting fails during findByIdAndDelete', function (done) {
+    lab.test('it returns an error when id casting fails during findByIdAndDelete', (done) => {
 
-        SubModel.findByIdAndDelete('NOTVALIDOBJECTID', function (err, result) {
+        SubModel.findByIdAndDelete('NOTVALIDOBJECTID', (err, result) => {
 
             Code.expect(err).to.exist();
             done();
@@ -1252,18 +1254,18 @@ lab.experiment('BaseModel Proxied Methods', function () {
     });
 
 
-    lab.test('it deletes one document via deleteOne', function (done) {
+    lab.test('it deletes one document via deleteOne', (done) => {
 
         Async.auto({
             setup: function (cb) {
 
-                var testDoc = { name: 'Ren' };
+                const testDoc = { name: 'Ren' };
 
                 SubModel.insertOne(testDoc, cb);
             }
-        }, function (err, results) {
+        }, (err, results) => {
 
-            SubModel.deleteOne({}, function (err, count) {
+            SubModel.deleteOne({}, (err, count) => {
 
                 Code.expect(err).to.not.exist();
                 Code.expect(count).to.be.a.number();
@@ -1275,21 +1277,21 @@ lab.experiment('BaseModel Proxied Methods', function () {
     });
 
 
-    lab.test('it returns an error when deleteOne fails', function (done) {
+    lab.test('it returns an error when deleteOne fails', (done) => {
 
         Async.auto({
             setup: function (cb) {
 
-                var testDocs = [
+                const testDocs = [
                     { name: 'Ren' },
                     { name: 'Stimpy' }
                 ];
 
                 SubModel.insertMany(testDocs, cb);
             }
-        }, function (err, results) {
+        }, (err, results) => {
 
-            var realCollection = BaseModel.db.collection;
+            const realCollection = BaseModel.db.collection;
             BaseModel.db.collection = function () {
 
                 return {
@@ -1300,7 +1302,7 @@ lab.experiment('BaseModel Proxied Methods', function () {
                 };
             };
 
-            SubModel.deleteOne({}, function (err, count) {
+            SubModel.deleteOne({}, (err, count) => {
 
                 Code.expect(err).to.exist();
                 Code.expect(count).to.not.exist();
@@ -1312,21 +1314,21 @@ lab.experiment('BaseModel Proxied Methods', function () {
     });
 
 
-    lab.test('it deletes multiple documents and returns the count via deleteMany', function (done) {
+    lab.test('it deletes multiple documents and returns the count via deleteMany', (done) => {
 
         Async.auto({
             setup: function (cb) {
 
-                var testDocs = [
+                const testDocs = [
                     { name: 'Ren' },
                     { name: 'Stimpy' }
                 ];
 
                 SubModel.insertMany(testDocs, cb);
             }
-        }, function (err, results) {
+        }, (err, results) => {
 
-            SubModel.deleteMany({}, function (err, count) {
+            SubModel.deleteMany({}, (err, count) => {
 
                 Code.expect(err).to.not.exist();
                 Code.expect(count).to.be.a.number();
@@ -1338,21 +1340,21 @@ lab.experiment('BaseModel Proxied Methods', function () {
     });
 
 
-    lab.test('it returns an error when deleteMany fails', function (done) {
+    lab.test('it returns an error when deleteMany fails', (done) => {
 
         Async.auto({
             setup: function (cb) {
 
-                var testDocs = [
+                const testDocs = [
                     { name: 'Ren' },
                     { name: 'Stimpy' }
                 ];
 
                 SubModel.insertMany(testDocs, cb);
             }
-        }, function (err, results) {
+        }, (err, results) => {
 
-            var realCollection = BaseModel.db.collection;
+            const realCollection = BaseModel.db.collection;
             BaseModel.db.collection = function () {
 
                 return {
@@ -1363,7 +1365,7 @@ lab.experiment('BaseModel Proxied Methods', function () {
                 };
             };
 
-            SubModel.deleteMany({}, function (err, count) {
+            SubModel.deleteMany({}, (err, count) => {
 
                 Code.expect(err).to.exist();
                 Code.expect(count).to.not.exist();

@@ -1,6 +1,8 @@
-var Path = require('path');
-var Hoek = require('hoek');
-var BaseModel = require('./lib/base-model');
+'use strict';
+
+const Path = require('path');
+const Hoek = require('hoek');
+const BaseModel = require('./lib/base-model');
 
 
 exports.BaseModel = BaseModel;
@@ -10,18 +12,18 @@ exports.register = function (server, options, next) {
 
     Hoek.assert(options.mongodb, 'options.mongodb is required');
 
-    var models = options.models || {};
-    var mongodb = options.mongodb;
-    var autoIndex = options.hasOwnProperty('autoIndex') ? options.autoIndex : true;
-    var addModel = function (key, model) {
+    const models = options.models || {};
+    const mongodb = options.mongodb;
+    const autoIndex = options.hasOwnProperty('autoIndex') ? options.autoIndex : true;
+    const addModel = function (key, model) {
 
         models[key] = model;
         server.expose(key, model);
     };
 
-    Object.keys(models).forEach(function (key) {
+    Object.keys(models).forEach((key) => {
 
-        var modelPath = models[key];
+        let modelPath = models[key];
 
         if (modelPath !== Path.resolve(modelPath)) {
             modelPath = Path.join(process.cwd(), modelPath);
@@ -34,10 +36,10 @@ exports.register = function (server, options, next) {
 
     server.expose('BaseModel', BaseModel);
 
-    server.ext('onPreStart', function (serverObj, done) {
+    server.ext('onPreStart', (serverObj, done) => {
 
         if (autoIndex) {
-            Object.keys(models).forEach(function (key) {
+            Object.keys(models).forEach((key) => {
 
                 if (models[key].indexes) {
                     models[key].createIndexes(models[key].indexes);
@@ -48,7 +50,7 @@ exports.register = function (server, options, next) {
         done();
     });
 
-    BaseModel.connect(mongodb, function (err, db) {
+    BaseModel.connect(mongodb, (err, db) => {
 
         if (err) {
             server.log('Error connecting to MongoDB via BaseModel.');

@@ -91,11 +91,11 @@ acts as a singleton so all models can share one db connection.
 Let's create a `Customer` model.
 
 ```js
-var Joi = require('joi');
-var ObjectAssign = require('object-assign');
-var BaseModel = require('hapi-mongo-models').BaseModel;
+const Joi = require('joi');
+const ObjectAssign = require('object-assign');
+const BaseModel = require('hapi-mongo-models').BaseModel;
 
-var Customer = BaseModel.extend({
+const Customer = BaseModel.extend({
     // instance prototype
     constructor: function (attrs) {
 
@@ -124,9 +124,9 @@ During plugin registration we connect to MongoDB using the supplied options.
 #### Register manually
 
 ```js
-var HapiMongoModels = require('hapi-mongo-models');
+const HapiMongoModels = require('hapi-mongo-models');
 
-var plugin = {
+const plugin = {
     register: HapiMongoModels,
     options: {
         mongodb: {
@@ -141,7 +141,7 @@ var plugin = {
     }
 };
 
-server.register(plugin, function (err) {
+server.register(plugin, (err) => {
 
      if (err) {
          console.log('Failed loading plugin');
@@ -195,11 +195,11 @@ dynamically.
 For example, in a plugin you author:
 
 ```js
-var DynamoKitty = require('./models/dynamo-kitty');
+const DynamoKitty = require('./models/dynamo-kitty');
 
 exports.register = function (server, options, next) {
 
-    var addModel = server.plugins['hapi-mongo-models'].addModel;
+    const addModel = server.plugins['hapi-mongo-models'].addModel;
     addModel('DynamoKitty', DynamoKitty);
     next();
 };
@@ -237,14 +237,14 @@ exports.register = function (server, options, next) {
         },
         handler: function (request, reply) {
 
-            var Customer = request.server.plugins['hapi-mongo-models'].Customer;
-            var filter = {};
+            const Customer = request.server.plugins['hapi-mongo-models'].Customer;
+            const filter = {};
 
             if (request.query.name) {
                 filter.name = request.query.name;
             }
 
-            Customer.find(filter, function (err, results) {
+            Customer.find(filter, (err, results) => {
 
                 if (err) {
                     return reply(err);
@@ -277,10 +277,10 @@ Creates a new model class where:
       constructor.
 
 ```js
-var BaseModel = require('hapi-mongo-models').BaseModel;
-var ObjectAssign = require('object-assign');
+const BaseModel = require('hapi-mongo-models').BaseModel;
+const ObjectAssign = require('object-assign');
 
-var Kitten = BaseModel.extend({
+const Kitten = BaseModel.extend({
     constructor: function (attrs) {
 
         ObjectAssign(this, attrs);
@@ -309,12 +309,12 @@ When you define a custom `_idClass` property for your model you just need to
 pass an `_id` parameter of that type when you create new documents.
 
 ```js
-var data = {
+const data = {
     _id: 'captain-cute',
     name: 'Captain Cute'
 };
 
-Kitten.insert(data, function (err, results) {
+Kitten.insert(data, (err, results) => {
 
     // handle response
 });
@@ -402,11 +402,11 @@ class to validate `input` where:
        modifiers applied.
 
 ```js
-var data = {
+const data = {
     name: 'Captain Cute'
 };
 
-Kitten.validate(data, function (err, value) {
+Kitten.validate(data, (err, value) => {
 
     // handle results
 });
@@ -426,11 +426,11 @@ class to validate the instance data of a model where:
        modifiers applied.
 
 ```js
-var cc = new Kitten({
+const cc = new Kitten({
     name: 'Captain Cute'
 });
 
-cc.validate(function (err, value) {
+cc.validate((err, value) => {
 
     // handle results
 });
