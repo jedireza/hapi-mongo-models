@@ -340,7 +340,7 @@ lab.experiment('BaseModel Paged Find', () => {
 
         SubModel.deleteMany({}, (err, result) => {
 
-            done();
+            done(err);
         });
     });
 
@@ -386,6 +386,10 @@ lab.experiment('BaseModel Paged Find', () => {
             }
         }, (err, results) => {
 
+            if (err) {
+                return done(err);
+            }
+
             const filter = {};
             let fields;
             const limit = 10;
@@ -397,7 +401,7 @@ lab.experiment('BaseModel Paged Find', () => {
                 Code.expect(err).to.not.exist();
                 Code.expect(docs).to.be.an.object();
 
-                done();
+                done(err);
             });
         });
     });
@@ -418,6 +422,10 @@ lab.experiment('BaseModel Paged Find', () => {
             }
         }, (err, results) => {
 
+            if (err) {
+                return done(err);
+            }
+
             const filter = {};
             let fields;
             const limit = 2;
@@ -429,7 +437,7 @@ lab.experiment('BaseModel Paged Find', () => {
                 Code.expect(err).to.not.exist();
                 Code.expect(docs).to.be.an.object();
 
-                done();
+                done(err);
             });
         });
     });
@@ -450,6 +458,10 @@ lab.experiment('BaseModel Paged Find', () => {
             }
         }, (err, results) => {
 
+            if (err) {
+                return done(err);
+            }
+
             const filter = { 'role.special': { $exists: true } };
             let fields;
             const limit = 2;
@@ -461,7 +473,7 @@ lab.experiment('BaseModel Paged Find', () => {
                 Code.expect(err).to.not.exist();
                 Code.expect(docs).to.be.an.object();
 
-                done();
+                done(err);
             });
         });
     });
@@ -502,7 +514,7 @@ lab.experiment('BaseModel Proxied Methods', () => {
 
         SubModel.deleteMany({}, (err, result) => {
 
-            done();
+            done(err);
         });
     });
 
@@ -573,6 +585,10 @@ lab.experiment('BaseModel Proxied Methods', () => {
             }
         }, (err, results) => {
 
+            if (err) {
+                return done(err);
+            }
+
             const filter = {
                 _id: results.setup[0]._id
             };
@@ -607,6 +623,10 @@ lab.experiment('BaseModel Proxied Methods', () => {
             }
         }, (err, results) => {
 
+            if (err) {
+                return done(err);
+            }
+
             const filter = {
                 _id: results.setup[0]._id
             };
@@ -637,6 +657,10 @@ lab.experiment('BaseModel Proxied Methods', () => {
                 SubModel.insertOne(testDoc, cb);
             }
         }, (err, results) => {
+
+            if (err) {
+                return done(err);
+            }
 
             const realCollection = BaseModel.db.collection;
             BaseModel.db.collection = function () {
@@ -679,6 +703,10 @@ lab.experiment('BaseModel Proxied Methods', () => {
             }
         }, (err, results) => {
 
+            if (err) {
+                return done(err);
+            }
+
             const filter = {};
             const update = { $set: { isCool: true } };
 
@@ -709,6 +737,10 @@ lab.experiment('BaseModel Proxied Methods', () => {
             }
         }, (err, results) => {
 
+            if (err) {
+                return done(err);
+            }
+
             const filter = {};
             const update = { $set: { isCool: true } };
             const options = { upsert: true };
@@ -735,6 +767,10 @@ lab.experiment('BaseModel Proxied Methods', () => {
                 SubModel.insertOne(testDoc, cb);
             }
         }, (err, results) => {
+
+            if (err) {
+                return done(err);
+            }
 
             const realCollection = BaseModel.db.collection;
             BaseModel.db.collection = function () {
@@ -777,6 +813,10 @@ lab.experiment('BaseModel Proxied Methods', () => {
             }
         }, (err, results) => {
 
+            if (err) {
+                return done(err);
+            }
+
             SubModel.count({}, (err, result) => {
 
                 Code.expect(err).to.not.exist();
@@ -803,6 +843,10 @@ lab.experiment('BaseModel Proxied Methods', () => {
                 SubModel.insertMany(testDocs, cb);
             }
         }, (err, results) => {
+
+            if (err) {
+                return done(err);
+            }
 
             SubModel.distinct('group', (err, values) => {
 
@@ -831,6 +875,10 @@ lab.experiment('BaseModel Proxied Methods', () => {
             }
         }, (err, results) => {
 
+            if (err) {
+                return done(err);
+            }
+
             SubModel.find({}, (err, docs) => {
 
                 Code.expect(err).to.not.exist();
@@ -858,6 +906,10 @@ lab.experiment('BaseModel Proxied Methods', () => {
             }
         }, (err, results) => {
 
+            if (err) {
+                return done(err);
+            }
+
             SubModel.findOne({}, (err, result) => {
 
                 Code.expect(err).to.not.exist();
@@ -880,6 +932,10 @@ lab.experiment('BaseModel Proxied Methods', () => {
                 SubModel.insertOne(testDoc, cb);
             }
         }, (err, results) => {
+
+            if (err) {
+                return done(err);
+            }
 
             const id = results.setup[0]._id;
 
@@ -915,6 +971,10 @@ lab.experiment('BaseModel Proxied Methods', () => {
                 SubModel.insertOne(testDoc, cb);
             }
         }, (err, results) => {
+
+            if (err) {
+                return done(err);
+            }
 
             const id = results.setup[0]._id;
             const update = { name: 'New Name' };
@@ -952,6 +1012,10 @@ lab.experiment('BaseModel Proxied Methods', () => {
             }
         }, (err, results) => {
 
+            if (err) {
+                return done(err);
+            }
+
             const id = results.setup[0]._id;
             const update = { name: 'New Name' };
             const options = { returnOriginal: false };
@@ -979,6 +1043,10 @@ lab.experiment('BaseModel Proxied Methods', () => {
             }
         }, (err, results) => {
 
+            if (err) {
+                return done(err);
+            }
+
             const filter = { name: 'Ren' };
             const update = { name: 'New Name' };
 
@@ -1004,6 +1072,10 @@ lab.experiment('BaseModel Proxied Methods', () => {
                 SubModel.insertOne(testDoc, cb);
             }
         }, (err, results) => {
+
+            if (err) {
+                return done(err);
+            }
 
             const filter = { name: 'Ren' };
             const update = { name: 'New Name' };
@@ -1032,6 +1104,10 @@ lab.experiment('BaseModel Proxied Methods', () => {
             }
         }, (err, results) => {
 
+            if (err) {
+                return done(err);
+            }
+
             const filter = { name: 'Ren' };
             const doc = { isCool: true };
 
@@ -1057,6 +1133,10 @@ lab.experiment('BaseModel Proxied Methods', () => {
                 SubModel.insertOne(testDoc, cb);
             }
         }, (err, results) => {
+
+            if (err) {
+                return done(err);
+            }
 
             const filter = { name: 'Ren' };
             const doc = { isCool: true };
@@ -1085,6 +1165,10 @@ lab.experiment('BaseModel Proxied Methods', () => {
             }
         }, (err, results) => {
 
+            if (err) {
+                return done(err);
+            }
+
             const filter = { name: 'Ren' };
             const doc = { isCool: true };
 
@@ -1110,6 +1194,10 @@ lab.experiment('BaseModel Proxied Methods', () => {
                 SubModel.insertOne(testDoc, cb);
             }
         }, (err, results) => {
+
+            if (err) {
+                return done(err);
+            }
 
             const filter = { name: 'Ren' };
             const doc = { isCool: true };
@@ -1137,6 +1225,10 @@ lab.experiment('BaseModel Proxied Methods', () => {
                 SubModel.insertOne(testDoc, cb);
             }
         }, (err, results) => {
+
+            if (err) {
+                return done(err);
+            }
 
             const realCollection = BaseModel.db.collection;
             BaseModel.db.collection = function () {
@@ -1175,6 +1267,10 @@ lab.experiment('BaseModel Proxied Methods', () => {
             }
         }, (err, results) => {
 
+            if (err) {
+                return done(err);
+            }
+
             const filter = { name: 'Ren' };
 
             SubModel.findOneAndDelete(filter, (err, result) => {
@@ -1200,6 +1296,10 @@ lab.experiment('BaseModel Proxied Methods', () => {
             }
         }, (err, results) => {
 
+            if (err) {
+                return done(err);
+            }
+
             const id = results.setup[0]._id;
 
             SubModel.findByIdAndDelete(id, (err, result) => {
@@ -1224,6 +1324,10 @@ lab.experiment('BaseModel Proxied Methods', () => {
                 SubModel.insertOne(testDoc, cb);
             }
         }, (err, results) => {
+
+            if (err) {
+                return done(err);
+            }
 
             const id = results.setup[0]._id;
             const options = {
@@ -1265,6 +1369,10 @@ lab.experiment('BaseModel Proxied Methods', () => {
             }
         }, (err, results) => {
 
+            if (err) {
+                return done(err);
+            }
+
             SubModel.deleteOne({}, (err, count) => {
 
                 Code.expect(err).to.not.exist();
@@ -1290,6 +1398,10 @@ lab.experiment('BaseModel Proxied Methods', () => {
                 SubModel.insertMany(testDocs, cb);
             }
         }, (err, results) => {
+
+            if (err) {
+                return done(err);
+            }
 
             const realCollection = BaseModel.db.collection;
             BaseModel.db.collection = function () {
@@ -1328,6 +1440,10 @@ lab.experiment('BaseModel Proxied Methods', () => {
             }
         }, (err, results) => {
 
+            if (err) {
+                return done(err);
+            }
+
             SubModel.deleteMany({}, (err, count) => {
 
                 Code.expect(err).to.not.exist();
@@ -1353,6 +1469,10 @@ lab.experiment('BaseModel Proxied Methods', () => {
                 SubModel.insertMany(testDocs, cb);
             }
         }, (err, results) => {
+
+            if (err) {
+                return done(err);
+            }
 
             const realCollection = BaseModel.db.collection;
             BaseModel.db.collection = function () {
