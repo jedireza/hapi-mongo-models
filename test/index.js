@@ -231,7 +231,7 @@ lab.experiment('Plugin', () => {
 
                 server.plugins['hapi-mongo-models'].BaseModel.disconnect();
 
-                done();
+                done(err);
             });
         });
     });
