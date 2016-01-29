@@ -277,10 +277,10 @@ lab.experiment('BaseModel Helpers', () => {
 
     lab.test('it returns expected results for the fields adapter', (done) => {
 
-        const fieldsDoc = BaseModel.fieldsAdapter('one two three');
+        const fieldsDoc = BaseModel.fieldsAdapter('one -two three');
         Code.expect(fieldsDoc).to.be.an.object();
         Code.expect(fieldsDoc.one).to.equal(true);
-        Code.expect(fieldsDoc.two).to.equal(true);
+        Code.expect(fieldsDoc.two).to.equal(false);
         Code.expect(fieldsDoc.three).to.equal(true);
 
         const fieldsDoc2 = BaseModel.fieldsAdapter('');
