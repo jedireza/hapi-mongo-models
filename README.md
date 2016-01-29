@@ -443,14 +443,15 @@ See: https://github.com/hapijs/joi#validatevalue-schema-options-callback
 A helper method to create a fields object suitable to use with MongoDB queries
 where:
 
- - `fields` - a string with space separated field names.
+ - `fields` - a string with space separated field names. Fields may be prefixed
+   with `-` to indicate exclusion instead of inclusion.
 
 Returns a MongoDB friendly fields object.
 
 ```js
-Kitten.fieldsAdapter('name email');
+Kitten.fieldsAdapter('name -email');
 
-// { name: true, email: true }
+// { name: true, email: false }
 ```
 
 #### `sortAdapter(sorts)`
