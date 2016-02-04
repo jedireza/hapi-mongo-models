@@ -60,7 +60,7 @@ It's just JavaScript.
         - [`findByIdAndUpdate(id, update, [options], callback)`](#findbyidandupdateid-update-options-callback)
         - [`findByIdAndDelete(id, callback)`](#findbyidanddeleteid-callback)
         - [`findOne(filter, [options], callback)`](#findonefilter-options-callback)
-        - [`findOneAndUpdate(filter, [options], callback)`](#findoneandupdatefilter-options-callback)
+        - [`findOneAndUpdate(filter, update, [options], callback)`](#findoneandupdatefilter-options-callback)
         - [`findOneAndDelete(filter, [options], callback)`](#findoneanddeletefilter-options-callback)
         - [`insertOne(doc, [options], callback)`](#insertonedoc-options-callback)
         - [`insertMany(docs, [options], callback)`](#insertmanydocs-options-callback)
@@ -585,11 +585,12 @@ Finds one document matching a `filter` where:
     - `err` - if the query failed, the error reason, otherwise `null`.
     - `result` - if the query succeeded, a document as a class instance.
 
-#### `findOneAndUpdate(filter, [options], callback)`
+#### `findOneAndUpdate(filter, update, [options], callback)`
 
 Finds one document matching a `filter`, updates it and returns it where:
 
  - `filter` - a filter object used to select the document to update.
+ - `update` - an object containing the fields/values to be updated.
  - `options` - an options object passed to MongoDB's native `findOneAndUpdate`
    method. Defaults to `{ returnOriginal: false }`.
  - `callback` - the callback method using the signature `function (err, result)`
