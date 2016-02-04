@@ -60,7 +60,7 @@ It's just JavaScript.
         - [`findByIdAndUpdate(id, update, [options], callback)`](#findbyidandupdateid-update-options-callback)
         - [`findByIdAndDelete(id, callback)`](#findbyidanddeleteid-callback)
         - [`findOne(filter, [options], callback)`](#findonefilter-options-callback)
-        - [`findOneAndUpdate(filter, [options], callback)`](#findoneandupdatefilter-options-callback)
+        - [`findOneAndUpdate(filter, update, [options], callback)`](#findoneandupdatefilter-options-callback)
         - [`findOneAndDelete(filter, [options], callback)`](#findoneanddeletefilter-options-callback)
         - [`insertOne(doc, [options], callback)`](#insertonedoc-options-callback)
         - [`insertMany(docs, [options], callback)`](#insertmanydocs-options-callback)
