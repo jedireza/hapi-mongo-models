@@ -153,22 +153,25 @@ server.register(plugin, (err) => {
 
 ```json
 {
-    "servers": [{
+    "connections": [{
         "port": 8080
     }],
-    "plugins": {
-        "hapi-mongo-models": {
-            "mongodb": {
-              "url": "mongodb://localhost:27017/hapi-mongo-models-test",
-              "options": {},
-            },
-            "autoIndex": false,
-            "models": {
-              "Customer": "./path/to/customer",
-              "Order": "./path/to/order"
+    "registrations": [{
+        "plugin": {
+            "register": "hapi-mongo-models",
+            "options": {
+                "mongodb": {
+                    "url": "mongodb://localhost:27017/hapi-mongo-models-test",
+                    "options": {},
+                },
+                "autoIndex": false,
+                "models": {
+                    "Customer": "./path/to/customer",
+                    "Order": "./path/to/order"
+                }
             }
         }
-    }
+    }]
 }
 ```
 
