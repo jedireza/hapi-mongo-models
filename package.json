@@ -31,10 +31,10 @@
   "homepage": "https://github.com/jedireza/hapi-mongo-models",
   "devDependencies": {
     "code": "2.x.x",
-    "hapi": "11.x.x",
-    "lab": "8.x.x",
+    "hapi": "13.x.x",
+    "lab": "10.x.x",
     "mongodb": "2.x.x",
-    "opn-cli": "1.x.x",
+    "opn-cli": "3.x.x",
     "proxyquire": "1.x.x"
   },
   "peerDependencies": {
@@ -44,7 +44,7 @@
     "ampersand-class-extend": "1.x.x",
     "async": "1.x.x",
     "hoek": "3.x.x",
-    "joi": "7.x.x",
+    "joi": "8.x.x",
     "object-assign": "4.x.x"
   }
 }
