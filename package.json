@@ -31,8 +31,8 @@
   "homepage": "https://github.com/jedireza/hapi-mongo-models",
   "devDependencies": {
     "code": "3.x.x",
-    "hapi": "14.x.x",
-    "lab": "10.x.x",
+    "hapi": "15.x.x",
+    "lab": "11.x.x",
     "mongodb": "2.x.x",
     "opn-cli": "3.x.x",
     "proxyquire": "1.x.x"
