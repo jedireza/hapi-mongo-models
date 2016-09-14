@@ -1,11 +1,10 @@
 {
   "name": "hapi-mongo-models",
   "version": "5.0.1",
-  "description": "MongoDB object models for hapi applications",
+  "description": "A hapi plugin for mongo-models",
   "main": "index.js",
   "scripts": {
-    "test": "lab -c -L",
-    "test-cover": "lab -c -r html -o ./test/artifacts/coverage.html && opn ./test/artifacts/coverage.html"
+    "test": "lab -c -L"
   },
   "repository": {
     "type": "git",
@@ -32,19 +31,17 @@
   "devDependencies": {
     "code": "3.x.x",
     "hapi": "15.x.x",
+    "joi": "9.x.x",
     "lab": "11.x.x",
     "mongodb": "2.x.x",
-    "opn-cli": "3.x.x",
+    "mongo-models": "1.x.x",
     "proxyquire": "1.x.x"
   },
   "peerDependencies": {
-    "mongodb": "2.x.x"
+    "mongodb": "2.x.x",
+    "mongo-models": "1.x.x"
   },
   "dependencies": {
-    "ampersand-class-extend": "2.x.x",
-    "async": "2.x.x",
-    "hoek": "4.x.x",
-    "joi": "9.x.x",
-    "object-assign": "4.x.x"
+    "hoek": "4.x.x"
   }
 }

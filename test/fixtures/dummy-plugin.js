@@ -1,5 +1,4 @@
 'use strict';
-
 const Dummy = require('./dummy-model');
 
 
