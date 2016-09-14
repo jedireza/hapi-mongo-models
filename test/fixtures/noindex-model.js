@@ -1,20 +1,11 @@
 'use strict';
-
 const Joi = require('joi');
-const ObjectAssign = require('object-assign');
-const BaseModel = require('../../lib/base-model');
+const MongoModels = require('mongo-models');
 
 
-const NoIndex = BaseModel.extend({
-    constructor: function (attrs) {
+class NoIndex extends MongoModels {}
 
-        ObjectAssign(this, attrs);
-    }
-});
-
-
-NoIndex._collection = 'noindexes';
-
+NoIndex.collection = 'noindexes';
 
 NoIndex.schema = Joi.object().keys({
     name: Joi.string().required(),

@@ -2,10 +2,10 @@
 
 const Path = require('path');
 const Hoek = require('hoek');
-const BaseModel = require('./lib/base-model');
+const MongoModels = require('mongo-models');
 
 
-exports.BaseModel = BaseModel;
+exports.MongoModels = MongoModels;
 
 
 exports.register = function (server, options, next) {
@@ -34,7 +34,7 @@ exports.register = function (server, options, next) {
 
     server.expose('addModel', addModel);
 
-    server.expose('BaseModel', BaseModel);
+    server.expose('MongoModels', MongoModels);
 
     server.ext('onPreStart', (serverObj, done) => {
 
@@ -50,10 +50,10 @@ exports.register = function (server, options, next) {
         done();
     });
 
-    BaseModel.connect(mongodb, (err, db) => {
+    MongoModels.connect(mongodb.uri, mongodb.options, (err, db) => {
 
         if (err) {
-            server.log('Error connecting to MongoDB via BaseModel.');
+            server.log('Error connecting to MongoDB via MongoModels.');
             return next(err);
         }
 

@@ -1,20 +1,19 @@
 'use strict';
-
-const Path = require('path');
-const Lab = require('lab');
 const Code = require('code');
-const Hapi = require('hapi');
-const Proxyquire = require('proxyquire');
 const Config = require('./config');
 const DummyPlugin = require('./fixtures/dummy-plugin');
+const Hapi = require('hapi');
+const Lab = require('lab');
+const Path = require('path');
+const Proxyquire = require('proxyquire');
 
 
 const lab = exports.lab = Lab.script();
 const stub = {
-    BaseModel: {}
+    MongoModels: {}
 };
 const ModelsPlugin = Proxyquire('..', {
-    './lib/base-model': stub.BaseModel
+    'mongo-models': stub.MongoModels
 });
 
 
@@ -22,8 +21,9 @@ lab.experiment('Plugin', () => {
 
     lab.test('it returns an error when the db connection fails', (done) => {
 
-        const realConnect = stub.BaseModel.connect;
-        stub.BaseModel.connect = function (config, callback) {
+        const realConnect = stub.MongoModels.connect;
+
+        stub.MongoModels.connect = function (uri, options, callback) {
 
             callback(Error('connect failed'));
         };
@@ -34,12 +34,13 @@ lab.experiment('Plugin', () => {
             options: Config
         };
 
-        server.connection({ port: 0 });
+        server.connection({});
+
         server.register(Plugin, (err) => {
 
             Code.expect(err).to.be.an.object();
 
-            stub.BaseModel.connect = realConnect;
+            stub.MongoModels.connect = realConnect;
 
             done();
         });
@@ -54,7 +55,8 @@ lab.experiment('Plugin', () => {
             options: Config
         };
 
-        server.connection({ port: 0 });
+        server.connection({});
+
         server.register(Plugin, (err) => {
 
             if (err) {
@@ -62,9 +64,9 @@ lab.experiment('Plugin', () => {
             }
 
             Code.expect(server.plugins['hapi-mongo-models']).to.be.an.object();
-            Code.expect(server.plugins['hapi-mongo-models'].BaseModel).to.exist();
+            Code.expect(server.plugins['hapi-mongo-models'].MongoModels).to.exist();
 
-            server.plugins['hapi-mongo-models'].BaseModel.disconnect();
+            server.plugins['hapi-mongo-models'].MongoModels.disconnect();
 
             done();
         });
@@ -84,7 +86,8 @@ lab.experiment('Plugin', () => {
             }
         };
 
-        server.connection({ port: 0 });
+        server.connection({});
+
         server.register(Plugin, (err) => {
 
             if (err) {
@@ -94,7 +97,7 @@ lab.experiment('Plugin', () => {
             Code.expect(server.plugins['hapi-mongo-models']).to.be.an.object();
             Code.expect(server.plugins['hapi-mongo-models'].Dummy).to.exist();
 
-            server.plugins['hapi-mongo-models'].BaseModel.disconnect();
+            server.plugins['hapi-mongo-models'].MongoModels.disconnect();
 
             done();
         });
@@ -114,7 +117,8 @@ lab.experiment('Plugin', () => {
             }
         };
 
-        server.connection({ port: 0 });
+        server.connection({});
+
         server.register(Plugin, (err) => {
 
             if (err) {
@@ -124,7 +128,7 @@ lab.experiment('Plugin', () => {
             Code.expect(server.plugins['hapi-mongo-models']).to.be.an.object();
             Code.expect(server.plugins['hapi-mongo-models'].Dummy).to.exist();
 
-            server.plugins['hapi-mongo-models'].BaseModel.disconnect();
+            server.plugins['hapi-mongo-models'].MongoModels.disconnect();
 
             done();
         });
@@ -145,7 +149,8 @@ lab.experiment('Plugin', () => {
             }
         };
 
-        server.connection({ port: 0 });
+        server.connection({});
+
         server.register(Plugin, (err) => {
 
             if (err) {
@@ -161,7 +166,7 @@ lab.experiment('Plugin', () => {
                 Code.expect(server.plugins['hapi-mongo-models']).to.be.an.object();
                 Code.expect(server.plugins['hapi-mongo-models'].Dummy).to.exist();
 
-                server.plugins['hapi-mongo-models'].BaseModel.disconnect();
+                server.plugins['hapi-mongo-models'].MongoModels.disconnect();
 
                 done();
             });
@@ -182,7 +187,8 @@ lab.experiment('Plugin', () => {
             }
         };
 
-        server.connection({ port: 0 });
+        server.connection({});
+
         server.register(Plugin, (err) => {
 
             if (err) {
@@ -198,7 +204,7 @@ lab.experiment('Plugin', () => {
                 Code.expect(server.plugins['hapi-mongo-models']).to.be.an.object();
                 Code.expect(server.plugins['hapi-mongo-models'].NoIndex).to.exist();
 
-                server.plugins['hapi-mongo-models'].BaseModel.disconnect();
+                server.plugins['hapi-mongo-models'].MongoModels.disconnect();
 
                 done();
             });
@@ -217,7 +223,8 @@ lab.experiment('Plugin', () => {
         };
         const plugins = [hapiMongoModelsPlugin, DummyPlugin];
 
-        server.connection({ port: 0 });
+        server.connection({});
+
         server.register(plugins, (err) => {
 
             if (err) {
@@ -229,7 +236,7 @@ lab.experiment('Plugin', () => {
                 Code.expect(server.plugins['hapi-mongo-models']).to.be.an.object();
                 Code.expect(server.plugins['hapi-mongo-models'].Dummy).to.exist();
 
-                server.plugins['hapi-mongo-models'].BaseModel.disconnect();
+                server.plugins['hapi-mongo-models'].MongoModels.disconnect();
 
                 done(err);
             });
