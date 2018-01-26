@@ -5,7 +5,7 @@ const MongoModels = require('mongo-models');
 
 class NoIndex extends MongoModels {}
 
-NoIndex.collection = 'noindexes';
+NoIndex.collectionName = 'noindexes';
 
 NoIndex.schema = Joi.object().keys({
     name: Joi.string().required(),

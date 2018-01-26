@@ -1,67 +1,52 @@
 'use strict';
-
-const Path = require('path');
 const Hoek = require('hoek');
 const MongoModels = require('mongo-models');
 
 
-exports.MongoModels = MongoModels;
+const register = async function (server, options) {
 
-
-exports.register = function (server, options, next) {
-
+    Hoek.assert(options.models, 'options.models is required');
     Hoek.assert(options.mongodb, 'options.mongodb is required');
+    Hoek.assert(options.mongodb.connection, 'options.mongodb.connection is required');
+    Hoek.assert(options.mongodb.connection.uri, 'options.mongodb.connection.uri is required');
+    Hoek.assert(options.mongodb.connection.db, 'options.mongodb.connection.db is required');
 
-    const models = options.models || {};
-    const mongodb = options.mongodb;
-    const autoIndex = options.hasOwnProperty('autoIndex') ? options.autoIndex : true;
-    const addModel = function (key, model) {
+    const modelModules = options.models.reduce((accumulator, path) => {
 
-        models[key] = model;
-        server.expose(key, model);
-    };
+        accumulator[path] = require(path);
 
-    Object.keys(models).forEach((key) => {
+        return accumulator;
+    }, {});
 
-        let modelPath = models[key];
+    server.expose('mongo-models', MongoModels);
 
-        if (modelPath !== Path.resolve(modelPath)) {
-            modelPath = Path.join(process.cwd(), modelPath);
+    server.ext({
+        type: 'onPreStart',
+        method: async function (_server) {
+
+            if (options.hasOwnProperty('autoIndex') && options.autoIndex === false) {
+                return;
+            }
+
+            const indexJobs = options.models
+                .map((path) => modelModules[path])
+                .filter((model) => Boolean(model.indexes))
+                .map((model) => model.createIndexes.bind(model, model.indexes));
+
+            await Promise.all(indexJobs);
+
+            server.log(`HapiMongoModels: finished processing auto indexes.`);
         }
-
-        addModel(key, require(modelPath));
     });
 
-    server.expose('addModel', addModel);
+    await MongoModels.connect(options.mongodb.connection, options.mongodb.options);
 
-    server.expose('MongoModels', MongoModels);
-
-    server.ext('onPreStart', (serverObj, done) => {
-
-        if (autoIndex) {
-            Object.keys(models).forEach((key) => {
-
-                if (models[key].indexes) {
-                    models[key].createIndexes(models[key].indexes);
-                }
-            });
-        }
-
-        done();
-    });
-
-    MongoModels.connect(mongodb.uri, mongodb.options, (err, db) => {
-
-        if (err) {
-            server.log('Error connecting to MongoDB via MongoModels.');
-            return next(err);
-        }
-
-        next();
-    });
+    server.log('HapiMongoModels: successfully connected to the db.');
 };
 
 
-exports.register.attributes = {
-    pkg: require('./package.json')
+module.exports = {
+    name: 'hapi-mongo-models',
+    pkg: require('./package.json'),
+    register
 };

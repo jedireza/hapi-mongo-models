@@ -20,7 +20,7 @@
     "odm"
   ],
   "engines": {
-    "node": ">=4.0.0"
+    "node": ">=8.0.0"
   },
   "author": "Reza Akhavan <reza@akhavan.me>",
   "license": "MIT",
@@ -29,19 +29,19 @@
   },
   "homepage": "https://github.com/jedireza/hapi-mongo-models",
   "devDependencies": {
-    "code": "3.x.x",
-    "hapi": "15.x.x",
-    "joi": "9.x.x",
-    "lab": "11.x.x",
-    "mongodb": "2.x.x",
-    "mongo-models": "1.x.x",
+    "code": "5.x.x",
+    "hapi": "17.x.x",
+    "joi": "13.x.x",
+    "lab": "15.x.x",
+    "mongodb": "3.x.x",
+    "mongo-models": "2.x.x",
     "proxyquire": "1.x.x"
   },
   "peerDependencies": {
-    "mongodb": "2.x.x",
-    "mongo-models": "1.x.x"
+    "mongodb": "3.x.x",
+    "mongo-models": "2.x.x"
   },
   "dependencies": {
-    "hoek": "4.x.x"
+    "hoek": "5.x.x"
   }
 }

@@ -1,7 +1,5 @@
 'use strict';
 const Code = require('code');
-const Config = require('./config');
-const DummyPlugin = require('./fixtures/dummy-plugin');
 const Hapi = require('hapi');
 const Lab = require('lab');
 const Path = require('path');
@@ -9,237 +7,109 @@ const Proxyquire = require('proxyquire');
 
 
 const lab = exports.lab = Lab.script();
+const config = {
+    mongodb: {
+        connection: {
+            uri: 'mongodb://localhost:27017/',
+            db: 'hapi-mongo-models-test'
+        },
+        options: {}
+    },
+    models: [
+        Path.resolve(__dirname, 'fixtures/dummy-model'),
+        Path.resolve(__dirname, 'fixtures/noindex-model')
+    ]
+};
 const stub = {
     MongoModels: {}
 };
-const ModelsPlugin = Proxyquire('..', {
+const HapiMongoModels = Proxyquire('..', {
     'mongo-models': stub.MongoModels
 });
 
 
 lab.experiment('Plugin', () => {
 
-    lab.test('it returns an error when the db connection fails', (done) => {
+    lab.test('it throws an error when the db connection fails', async () => {
 
         const realConnect = stub.MongoModels.connect;
 
-        stub.MongoModels.connect = function (uri, options, callback) {
+        stub.MongoModels.connect = function (connection, options) {
 
-            callback(Error('connect failed'));
+            throw Error('connect failed');
         };
 
-        const server = new Hapi.Server();
-        const Plugin = {
-            register: ModelsPlugin,
-            options: Config
+        const server = Hapi.Server();
+        const plugin = {
+            plugin: HapiMongoModels,
+            options: config
+        };
+        const throws = async function () {
+
+            await server.register(plugin);
         };
 
-        server.connection({});
+        await Code.expect(throws()).to.reject();
 
-        server.register(Plugin, (err) => {
-
-            Code.expect(err).to.be.an.object();
-
-            stub.MongoModels.connect = realConnect;
-
-            done();
-        });
+        stub.MongoModels.connect = realConnect;
     });
 
 
-    lab.test('it successfuly connects to the db and exposes the base model', (done) => {
+    lab.test('it successfuly connects and exposes the plugin (default autoIndex value)', async () => {
 
-        const server = new Hapi.Server();
-        const Plugin = {
-            register: ModelsPlugin,
-            options: Config
+        const server = Hapi.Server();
+        const plugin = {
+            plugin: HapiMongoModels,
+            options: config
         };
 
-        server.connection({});
+        await server.register(plugin);
+        await server.start();
 
-        server.register(Plugin, (err) => {
+        Code.expect(server.plugins['hapi-mongo-models']).to.be.an.object();
 
-            if (err) {
-                return done(err);
-            }
-
-            Code.expect(server.plugins['hapi-mongo-models']).to.be.an.object();
-            Code.expect(server.plugins['hapi-mongo-models'].MongoModels).to.exist();
-
-            server.plugins['hapi-mongo-models'].MongoModels.disconnect();
-
-            done();
-        });
+        server.plugins['hapi-mongo-models']['mongo-models'].disconnect();
     });
 
 
-    lab.test('it successfuly connects to the db and exposes defined models', (done) => {
+    lab.test('it connects to the db and creates indexes during pre-start (autoIndex set manually)', async () => {
 
-        const server = new Hapi.Server();
-        const Plugin = {
-            register: ModelsPlugin,
-            options: {
-                mongodb: Config.mongodb,
-                models: {
-                    Dummy: './test/fixtures/dummy-model'
-                }
-            }
+        const configClone = JSON.parse(JSON.stringify(config));
+
+        configClone.autoIndex = true;
+
+        const server = Hapi.Server();
+        const plugin = {
+            plugin: HapiMongoModels,
+            options: configClone
         };
 
-        server.connection({});
+        await server.register(plugin);
+        await server.start();
 
-        server.register(Plugin, (err) => {
+        Code.expect(server.plugins['hapi-mongo-models']).to.be.an.object();
 
-            if (err) {
-                return done(err);
-            }
-
-            Code.expect(server.plugins['hapi-mongo-models']).to.be.an.object();
-            Code.expect(server.plugins['hapi-mongo-models'].Dummy).to.exist();
-
-            server.plugins['hapi-mongo-models'].MongoModels.disconnect();
-
-            done();
-        });
+        server.plugins['hapi-mongo-models']['mongo-models'].disconnect();
     });
 
 
-    lab.test('it successfuly connects to the db and exposes defined models (with absolute paths)', (done) => {
+    lab.test('it connects to the db and skips creating indexes during pre-start (autoIndex set manually)', async () => {
 
-        const server = new Hapi.Server();
-        const Plugin = {
-            register: ModelsPlugin,
-            options: {
-                mongodb: Config.mongodb,
-                models: {
-                    Dummy: Path.join(__dirname, 'fixtures/dummy-model')
-                }
-            }
+        const configClone = JSON.parse(JSON.stringify(config));
+
+        configClone.autoIndex = false;
+
+        const server = Hapi.Server();
+        const plugin = {
+            plugin: HapiMongoModels,
+            options: configClone
         };
 
-        server.connection({});
+        await server.register(plugin);
+        await server.start();
 
-        server.register(Plugin, (err) => {
+        Code.expect(server.plugins['hapi-mongo-models']).to.be.an.object();
 
-            if (err) {
-                return done(err);
-            }
-
-            Code.expect(server.plugins['hapi-mongo-models']).to.be.an.object();
-            Code.expect(server.plugins['hapi-mongo-models'].Dummy).to.exist();
-
-            server.plugins['hapi-mongo-models'].MongoModels.disconnect();
-
-            done();
-        });
-    });
-
-
-    lab.test('it successfuly connects to the db, exposes defined models and skips indexing', (done) => {
-
-        const server = new Hapi.Server();
-        const Plugin = {
-            register: ModelsPlugin,
-            options: {
-                mongodb: Config.mongodb,
-                models: {
-                    Dummy: './test/fixtures/dummy-model'
-                },
-                autoIndex: false
-            }
-        };
-
-        server.connection({});
-
-        server.register(Plugin, (err) => {
-
-            if (err) {
-                return done(err);
-            }
-
-            server.start((err) => {
-
-                if (err) {
-                    return done(err);
-                }
-
-                Code.expect(server.plugins['hapi-mongo-models']).to.be.an.object();
-                Code.expect(server.plugins['hapi-mongo-models'].Dummy).to.exist();
-
-                server.plugins['hapi-mongo-models'].MongoModels.disconnect();
-
-                done();
-            });
-        });
-    });
-
-
-    lab.test('it skips calling `createIndexes` when none are defined', (done) => {
-
-        const server = new Hapi.Server();
-        const Plugin = {
-            register: ModelsPlugin,
-            options: {
-                mongodb: Config.mongodb,
-                models: {
-                    NoIndex: './test/fixtures/noindex-model'
-                }
-            }
-        };
-
-        server.connection({});
-
-        server.register(Plugin, (err) => {
-
-            if (err) {
-                return done(err);
-            }
-
-            server.start((err) => {
-
-                if (err) {
-                    return done(err);
-                }
-
-                Code.expect(server.plugins['hapi-mongo-models']).to.be.an.object();
-                Code.expect(server.plugins['hapi-mongo-models'].NoIndex).to.exist();
-
-                server.plugins['hapi-mongo-models'].MongoModels.disconnect();
-
-                done();
-            });
-        });
-    });
-
-
-    lab.test('it allows models to be added dynamically specifically during another plugin\'s registration', (done) => {
-
-        const server = new Hapi.Server();
-        const hapiMongoModelsPlugin = {
-            register: ModelsPlugin,
-            options: {
-                mongodb: Config.mongodb
-            }
-        };
-        const plugins = [hapiMongoModelsPlugin, DummyPlugin];
-
-        server.connection({});
-
-        server.register(plugins, (err) => {
-
-            if (err) {
-                return done(err);
-            }
-
-            server.start((err) => {
-
-                Code.expect(server.plugins['hapi-mongo-models']).to.be.an.object();
-                Code.expect(server.plugins['hapi-mongo-models'].Dummy).to.exist();
-
-                server.plugins['hapi-mongo-models'].MongoModels.disconnect();
-
-                done(err);
-            });
-        });
+        server.plugins['hapi-mongo-models']['mongo-models'].disconnect();
     });
 });
