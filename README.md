@@ -19,157 +19,50 @@ $ npm install hapi-mongo-models
 
 During plugin registration we connect to MongoDB using the supplied options.
 
-#### Register manually
+During Hapi's `onPreStart` server extension point and based on your `autoIndex`
+option, we create any indexes defined in the `models` supplied.
+
+#### Register
 
 ```js
 const HapiMongoModels = require('hapi-mongo-models');
 
 const plugin = {
-    register: HapiMongoModels,
+    plugin: HapiMongoModels,
     options: {
         mongodb: {
-          uri: 'mongodb://localhost:27017/hapi-mongo-models-test',
-          options: {}
+            connection: {
+                uri: 'mongodb://localhost:27017/',
+                db: 'hapi-mongo-models-test'
+            },
+            options: {}
         },
-        autoIndex: false,
-        models: {
-            Customer: './path/to/customer',
-            Order: './path/to/order'
-        }
+        models: [
+            './path/to/customer',
+            './path/to/order'
+        ],
+        autoIndex: false
     }
 };
 
-server.register(plugin, (err) => {
-
-     if (err) {
-         console.log('Failed loading plugin');
-     }
- });
-```
-
-#### Register via manifest
-
-```json
-{
-    "connections": [{
-        "port": 8080
-    }],
-    "registrations": [{
-        "plugin": {
-            "register": "hapi-mongo-models",
-            "options": {
-                "mongodb": {
-                    "uri": "mongodb://localhost:27017/hapi-mongo-models-test",
-                    "options": {},
-                },
-                "autoIndex": false,
-                "models": {
-                    "Customer": "./path/to/customer",
-                    "Order": "./path/to/order"
-                }
-            }
-        }
-    }]
-}
+await server.register(plugin);
 ```
 
 ### Plugin options
 
 The options passed to the plugin is an object where:
 
- - `mongodb` - is an object where:
-   - `uri` - a string representing the connection uri for MongoDB.
-   - `options` - an optional object passed to MongoDB's native connect function.
- - `autoIndex` - a boolean specifying if the plugin should call `createIndexes`
+- `mongodb` - is an object where:
+  - `connection` - is an object where:
+    - `uri` - a string representing the connection uri for MongoDB.
+    - `db` - the name of the database.
+  - `options` - an optional object passed to MongoDB's native connect function.
+- `autoIndex` - a boolean specifying if the plugin should call `createIndexes`
    for each model that has a static `indexes` property. Defaults to `true`.
    Typically set to `false` in production environments.
- - `models` - an object where each key is the exposed model name and each value
-   is the path (relative to the current working directory or absolute) of where
-   to find the model on disk.
-
-### Usage in other plugins
-
-You can depend on `hapi-mongo-models` inside other plugins. This allows you to
-access models that were defined in the plugin config and add models
-dynamically.
-
-For example, in a plugin you author:
-
-```js
-const DynamoKitty = require('./models/dynamo-kitty');
-
-exports.register = function (server, options, next) {
-
-    const addModel = server.plugins['hapi-mongo-models'].addModel;
-    addModel('DynamoKitty', DynamoKitty);
-    next();
-};
-
-exports.register.attributes = {
-    name: 'dynamo',
-    version: '1.0.0',
-    dependencies: ['hapi-mongo-models']
-};
-```
-
-The `addModel` method is a function with the signature `function (key, model)`
-where:
-  - `key` - is a string representing the name that will be exported.
-  - `model` - is a model class created by using `BaseModel.extend(...)`.
-
-### Example
-
-Example usage in a route handler:
-
-```js
-// customer plugin
-
-exports.register = function (server, options, next) {
-
-    server.route({
-        method: 'GET',
-        path: '/customers',
-        config: {
-            validate: {
-                query: {
-                    name: Joi.string().allow('')
-                }
-            }
-        },
-        handler: function (request, reply) {
-
-            const Customer = request.server.plugins['hapi-mongo-models'].Customer;
-            const filter = {};
-
-            if (request.query.name) {
-                filter.name = request.query.name;
-            }
-
-            Customer.find(filter, (err, results) => {
-
-                if (err) {
-                    return reply(err);
-                }
-
-                reply(results);
-            });
-        }
-    });
-
-    next();
-};
-
-exports.register.attributes = {
-    name: 'customers'
-};
-```
-
-
-## In the wild
-
-To see `hapi-mongo-models` in action, checkout the
-[Frame](https://github.com/jedireza/frame) project's
-[models](https://github.com/jedireza/frame/tree/master/server/models).
+- `models` - an array strings representing the paths to the models (relative to
+  the current working directory or absolute) of where to find the model on
+  disk.
 
 
 ## Have a question?
@@ -182,6 +75,10 @@ initiative to read relevant documentation and be pro-active with debugging.
 
 Contributions are welcome. If you're changing something non-trivial, you may
 want to submit an issue before creating a large pull request.
+
+Note: This plugin is designed for basic use-cases. If you find yourself
+needing more, consider using the source as inspiration and create a custom
+plugin for your app.
 
 
 ## License
