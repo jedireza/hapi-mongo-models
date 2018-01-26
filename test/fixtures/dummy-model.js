@@ -5,7 +5,7 @@ const MongoModels = require('mongo-models');
 
 class Dummy extends MongoModels {}
 
-Dummy.collection = 'dummies';
+Dummy.collectionName = 'dummies';
 
 Dummy.schema = Joi.object().keys({
     name: Joi.string().required(),
