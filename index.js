@@ -35,13 +35,13 @@ const register = async function (server, options) {
 
             await Promise.all(indexJobs);
 
-            server.log(`HapiMongoModels: finished processing auto indexes.`);
+            server.log(['info', 'mongodb'], 'HapiMongoModels: finished processing auto indexes.');
         }
     });
 
     await MongoModels.connect(options.mongodb.connection, options.mongodb.options);
 
-    server.log('HapiMongoModels: successfully connected to the db.');
+    server.log(['info', 'mongodb'], 'HapiMongoModels: successfully connected to the db.');
 };
 
 
