@@ -69,6 +69,8 @@ lab.experiment('Plugin', () => {
         Code.expect(server.plugins['hapi-mongo-models']).to.be.an.object();
 
         server.plugins['hapi-mongo-models']['mongo-models'].disconnect();
+
+        await server.stop();
     });
 
 
@@ -90,6 +92,8 @@ lab.experiment('Plugin', () => {
         Code.expect(server.plugins['hapi-mongo-models']).to.be.an.object();
 
         server.plugins['hapi-mongo-models']['mongo-models'].disconnect();
+
+        await server.stop();
     });
 
 
@@ -111,5 +115,7 @@ lab.experiment('Plugin', () => {
         Code.expect(server.plugins['hapi-mongo-models']).to.be.an.object();
 
         server.plugins['hapi-mongo-models']['mongo-models'].disconnect();
+
+        await server.stop();
     });
 });

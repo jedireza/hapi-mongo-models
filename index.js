@@ -39,6 +39,16 @@ const register = async function (server, options) {
         }
     });
 
+    server.ext({
+        type: 'onPostStop',
+        method: function (_server) {
+
+            MongoModels.disconnect();
+
+            server.log(['info', 'mongodb'], 'HapiMongoModels: closed db connection(s).');
+        }
+    });
+
     await MongoModels.connect(options.mongodb.connection, options.mongodb.options);
 
     server.log(['info', 'mongodb'], 'HapiMongoModels: successfully connected to the db.');
