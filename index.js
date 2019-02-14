@@ -31,7 +31,7 @@ const register = async function (server, options) {
             const indexJobs = options.models
                 .map((path) => modelModules[path])
                 .filter((model) => Boolean(model.indexes))
-                .map((model) => model.createIndexes.bind(model, model.indexes));
+                .map((model) => model.createIndexes.call(model, model.indexes));
 
             await Promise.all(indexJobs);
 
