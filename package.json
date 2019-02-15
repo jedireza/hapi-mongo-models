@@ -1,6 +1,6 @@
 {
   "name": "hapi-mongo-models",
-  "version": "7.1.0",
+  "version": "7.1.1",
   "description": "A hapi plugin for mongo-models",
   "main": "index.js",
   "scripts": {
