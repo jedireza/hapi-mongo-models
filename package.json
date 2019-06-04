@@ -4,6 +4,7 @@
   "description": "A hapi plugin for mongo-models",
   "main": "index.js",
   "scripts": {
+    "example": "MONGODB_URI='mongodb://localhost:27017' MONGODB_NAME='hapi-mongo-models-test' PORT=8080 node example/app.js",
     "test": "lab -c -L"
   },
   "repository": {
