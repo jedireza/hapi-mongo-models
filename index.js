@@ -1,5 +1,6 @@
 'use strict';
-const Hoek = require('hoek');
+
+const Hoek = require('@hapi/hoek');
 const MongoModels = require('mongo-models');
 
 
@@ -31,7 +32,7 @@ const register = async function (server, options) {
             const indexJobs = options.models
                 .map((path) => modelModules[path])
                 .filter((model) => Boolean(model.indexes))
-                .map((model) => model.createIndexes.call(model, model.indexes));
+                .map((model) => model.createIndexes(model.indexes));
 
             await Promise.all(indexJobs);
 
