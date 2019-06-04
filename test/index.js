@@ -1,7 +1,8 @@
 'use strict';
-const Code = require('code');
-const Hapi = require('hapi');
-const Lab = require('lab');
+
+const Code = require('@hapi/code');
+const Hapi = require('@hapi/hapi');
+const Lab = require('@hapi/lab');
 const Path = require('path');
 const Proxyquire = require('proxyquire');
 
@@ -10,7 +11,7 @@ const lab = exports.lab = Lab.script();
 const config = {
     mongodb: {
         connection: {
-            uri: 'mongodb://localhost:27017/',
+            uri: process.env.MONGODB_URI || 'mongodb://localhost:27017/',
             db: 'hapi-mongo-models-test'
         },
         options: {}
