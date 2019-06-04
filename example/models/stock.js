@@ -13,7 +13,7 @@ const schema = Joi.object({
 
 
 class Stock extends MongoModels {
-    static create(name, email, phone) {
+    static create(description, qty, cost) {
 
         const document = new Stock({
             description,

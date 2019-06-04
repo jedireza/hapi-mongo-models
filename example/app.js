@@ -24,8 +24,8 @@ const mongodbPlugin = {
     }
 };
 
-const startServer = async function()
-{
+const startServer = async function () {
+
     const server = Hapi.server({
         port: 3000,
         host: 'localhost'
@@ -34,8 +34,9 @@ const startServer = async function()
     try {
         await server.register( mongodbPlugin );
     }
-    catch( err ){ return console.log( err ) }
-
+    catch (err) {
+        return console.log( err );
+    }
 
     try {
         await server.start();
@@ -45,8 +46,8 @@ const startServer = async function()
         process.exit(1);
     }
 
-    const startRouters = async function()
-    {
+    const startRouters = async function () {
+
         try {
             await server.register({
                 plugin: require('./plugins/customer'),
@@ -59,7 +60,9 @@ const startServer = async function()
                 }
             });
         }
-        catch( err ){ return console.log( err ) }
+        catch ( err ) {
+            return console.log( err );
+        }
 
         try {
             await server.register({
@@ -73,10 +76,12 @@ const startServer = async function()
                 }
             });
         }
-        catch( err ){ return console.log( {error: err} ) }
+        catch ( err ) {
+            return console.log( { error: err } );
+        }
     };
 
     startRouters();
-}
+};
 
 startServer();
