@@ -10,7 +10,6 @@ const register = async function (server, options) {
     Hoek.assert(options.mongodb, 'options.mongodb is required');
     Hoek.assert(options.mongodb.connection, 'options.mongodb.connection is required');
     Hoek.assert(options.mongodb.connection.uri, 'options.mongodb.connection.uri is required');
-    Hoek.assert(options.mongodb.connection.db, 'options.mongodb.connection.db is required');
 
     const modelModules = options.models.reduce((accumulator, path) => {
 
