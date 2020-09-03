@@ -30,7 +30,7 @@
   "homepage": "https://github.com/jedireza/hapi-mongo-models",
   "devDependencies": {
     "@hapi/code": "5.x.x",
-    "@hapi/hapi": "18.x.x",
+    "@hapi/hapi": "19.x.x",
     "@hapi/joi": "15.x.x",
     "@hapi/lab": "19.x.x",
     "mongodb": "3.x.x",
