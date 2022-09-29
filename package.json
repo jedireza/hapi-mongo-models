@@ -42,6 +42,6 @@
     "mongo-models": "3.x.x"
   },
   "dependencies": {
-    "@hapi/hoek": "7.x.x"
+    "@hapi/hoek": "9.x.x"
   }
 }
